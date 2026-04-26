@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wesley's Wallet — In Loving Memory</title>
+    <meta name="description" content="A memorial for Wesley. April 20, 2025 — April 25, 2026." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <header class="hero">
+        <div class="hero-inner">
+            <p class="eyebrow">In loving memory of</p>
+            <h1 class="name">Wesley</h1>
+            <p class="dates">
+                <time datetime="2025-04-20">April 20, 2025</time>
+                <span class="dash">—</span>
+                <time datetime="2026-04-25">April 25, 2026</time>
+            </p>
+            <p class="age" id="age-line">One year and five days of light.</p>
+            <a href="#wallet" class="scroll-cue" aria-label="Scroll to wallet">↓</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="wallet" class="section wallet">
+            <div class="container">
+                <h2 class="section-title">Wesley's Wallet</h2>
+                <p class="section-lede">
+                    A small amount of bitcoin, held in his name. It will grow, fall, and grow again —
+                    a quiet record of time passing, set aside in his memory.
+                </p>
+
+                <div class="wallet-card">
+                    <div class="wallet-stat">
+                        <span class="stat-label">Balance</span>
+                        <span class="stat-value" id="btc-balance">— BTC</span>
+                        <span class="stat-sub" id="usd-value">$—</span>
+                    </div>
+                    <div class="wallet-stat">
+                        <span class="stat-label">Bitcoin price</span>
+                        <span class="stat-value" id="btc-price">$—</span>
+                        <span class="stat-sub" id="btc-change">—</span>
+                    </div>
+                    <div class="wallet-stat">
+                        <span class="stat-label">Wallet address</span>
+                        <span class="stat-value mono" id="wallet-address">bc1q… (placeholder)</span>
+                        <span class="stat-sub">Read-only. Contributions welcome.</span>
+                    </div>
+                </div>
+
+                <div class="chart-wrap">
+                    <div class="chart-header">
+                        <h3>Bitcoin value over time</h3>
+                        <div class="chart-range" role="tablist" aria-label="Chart range">
+                            <button class="range-btn" data-days="30" role="tab">30D</button>
+                            <button class="range-btn active" data-days="365" role="tab" aria-selected="true">1Y</button>
+                            <button class="range-btn" data-days="max" role="tab">All</button>
+                        </div>
+                    </div>
+                    <canvas id="price-chart" height="120" aria-label="Bitcoin price chart"></canvas>
+                    <p class="chart-note" id="chart-note">Loading price history…</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="gallery" class="section gallery">
+            <div class="container">
+                <h2 class="section-title">Wesley</h2>
+                <p class="section-lede">Photos coming soon.</p>
+                <div class="photo-grid" id="photo-grid">
+                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
+                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
+                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
+                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="story" class="section story">
+            <div class="container narrow">
+                <h2 class="section-title">His Story</h2>
+                <p class="section-lede">
+                    Words for Wesley will live here — written by the people who loved him.
+                </p>
+                <div class="story-placeholder">
+                    <p>Coming soon.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="memories" class="section memories">
+            <div class="container narrow">
+                <h2 class="section-title">A Memory Wall</h2>
+                <p class="section-lede">
+                    A place for family and friends to leave a memory or message.
+                    Coming soon.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>For Wesley. Always loved, always remembered.</p>
+            <p class="small" id="footer-time"></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

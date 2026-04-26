@@ -1,0 +1,342 @@
+:root {
+    --bg: #faf7f2;
+    --bg-soft: #f3ede4;
+    --ink: #2d2a26;
+    --ink-soft: #6b6359;
+    --line: #e7dfd2;
+    --gold: #b8924a;
+    --gold-soft: #d9bf85;
+    --sage: #8a9a82;
+    --shadow: 0 1px 2px rgba(45, 42, 38, 0.04), 0 8px 24px rgba(45, 42, 38, 0.06);
+    --radius: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 300;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+
+a {
+    color: var(--gold);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--ink);
+}
+
+.container {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.container.narrow {
+    max-width: 720px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background:
+        radial-gradient(ellipse at 50% 30%, #fff 0%, var(--bg) 60%),
+        var(--bg);
+    padding: 80px 24px;
+    position: relative;
+}
+
+.hero-inner {
+    max-width: 640px;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin: 0 0 28px;
+}
+
+.name {
+    font-size: clamp(4rem, 12vw, 7.5rem);
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1;
+    margin: 0 0 28px;
+}
+
+.dates {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    letter-spacing: 0.04em;
+}
+
+.dash {
+    display: inline-block;
+    margin: 0 14px;
+    color: var(--gold);
+}
+
+.age {
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.scroll-cue {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold);
+    font-size: 1.4rem;
+    opacity: 0.7;
+    animation: float 2.4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 8px); }
+}
+
+/* ---------- Sections ---------- */
+.section {
+    padding: 110px 0;
+    border-top: 1px solid var(--line);
+}
+
+.section-title {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.section-lede {
+    text-align: center;
+    color: var(--ink-soft);
+    max-width: 580px;
+    margin: 0 auto 56px;
+    font-size: 1.05rem;
+}
+
+/* ---------- Wallet ---------- */
+.wallet-card {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 64px;
+}
+
+.wallet-stat {
+    background: #fff;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+}
+
+.stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.9rem;
+    color: var(--ink);
+    line-height: 1.15;
+    word-break: break-word;
+}
+
+.stat-value.mono {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.stat-sub {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+}
+
+@media (max-width: 720px) {
+    .wallet-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Chart ---------- */
+.chart-wrap {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.chart-header h3 {
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--ink);
+}
+
+.chart-range {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-soft);
+    border-radius: 999px;
+    padding: 4px;
+}
+
+.range-btn {
+    background: transparent;
+    border: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.08em;
+    transition: all 0.15s ease;
+}
+
+.range-btn:hover {
+    color: var(--ink);
+}
+
+.range-btn.active {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.chart-note {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    margin: 16px 0 0;
+}
+
+/* ---------- Gallery ---------- */
+.gallery {
+    background: var(--bg-soft);
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.photo {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius);
+    background: #fff;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.photo.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    border: 1px dashed var(--line);
+    background: transparent;
+    box-shadow: none;
+}
+
+/* ---------- Story / Memories ---------- */
+.story-placeholder {
+    text-align: center;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    padding: 60px 20px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+    padding: 60px 0 80px;
+    text-align: center;
+    color: var(--ink-soft);
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+}
+
+.footer p {
+    margin: 0 0 8px;
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+}
+
+.footer .small {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scroll-cue { animation: none; }
+}
