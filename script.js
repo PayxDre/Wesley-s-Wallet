@@ -1,4 +1,4 @@
-// Wesley's Wallet — live data + chart
+// Wesley's Wallet: live data + chart
 // All data is fetched from public, no-key APIs:
 //   - CoinGecko: BTC price + history
 //   - Blockstream:  wallet balance (when a real address is set)
@@ -154,7 +154,7 @@ async function loadWallet() {
             $('#btc-balance').textContent = fmtBTC(sats);
             $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
         } else {
-            $('#btc-balance').textContent = '— BTC';
+            $('#btc-balance').textContent = '… BTC';
             $('#usd-value').textContent = 'Awaiting wallet';
         }
     } catch (e) {
