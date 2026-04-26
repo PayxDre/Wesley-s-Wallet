@@ -313,6 +313,26 @@ a:hover {
     border-radius: var(--radius);
 }
 
+.story-content {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.25rem;
+    line-height: 1.75;
+    color: var(--ink);
+}
+
+.story-content p {
+    margin: 0 0 1.4em;
+}
+
+.story-content p:first-of-type::first-letter {
+    font-size: 3.2rem;
+    float: left;
+    line-height: 1;
+    padding: 6px 10px 0 0;
+    color: var(--gold);
+    font-style: italic;
+}
+
 /* ---------- Footer ---------- */
 .footer {
     padding: 60px 0 80px;
