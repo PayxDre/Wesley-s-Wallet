@@ -219,6 +219,15 @@ a:hover {
     box-shadow: var(--shadow);
 }
 
+.chart-canvas-wrap {
+    position: relative;
+    height: 320px;
+}
+
+@media (max-width: 600px) {
+    .chart-canvas-wrap { height: 240px; }
+}
+
 .chart-header {
     display: flex;
     justify-content: space-between;
