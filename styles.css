@@ -168,7 +168,23 @@ a:hover {
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
-    margin-bottom: 64px;
+    margin-bottom: 28px;
+}
+
+.wallet-rule {
+    text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+    margin: 0 auto 64px;
+    max-width: 580px;
+    line-height: 1.6;
+}
+
+.wallet-rule strong {
+    color: var(--gold);
+    font-weight: 500;
 }
 
 .wallet-stat {
