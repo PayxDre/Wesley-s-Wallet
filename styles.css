@@ -212,6 +212,32 @@ a:hover {
 }
 
 /* ---------- Chart ---------- */
+.wallet-purpose {
+    max-width: 680px;
+    margin: 0 auto 64px;
+    text-align: center;
+    padding: 8px 8px 32px;
+    position: relative;
+}
+
+.wallet-purpose::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 1px;
+    background: var(--gold-soft);
+    margin: 0 auto 28px;
+}
+
+.wallet-purpose p {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    line-height: 1.75;
+    color: var(--ink);
+    margin: 0;
+}
+
 .chart-wrap {
     background: #fff;
     border-radius: var(--radius);
