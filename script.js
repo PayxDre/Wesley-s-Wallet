@@ -186,6 +186,14 @@ function setAgeLine() {
     }
 }
 
+function handleMissingPhotos() {
+    document.querySelectorAll('.photo img').forEach((img) => {
+        const markMissing = () => img.closest('.photo').classList.add('is-missing');
+        if (img.complete && img.naturalWidth === 0) markMissing();
+        img.addEventListener('error', markMissing);
+    });
+}
+
 function setFooterTime() {
     $('#footer-time').textContent =
         'Last updated ' +
@@ -211,6 +219,7 @@ function loadChartAdapter() {
     setAgeLine();
     setFooterTime();
     setupRangeButtons();
+    handleMissingPhotos();
     try {
         await loadChartAdapter();
     } catch (e) {

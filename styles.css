@@ -360,6 +360,29 @@ a:hover {
     text-align: center;
 }
 
+/* Graceful state when an image is missing */
+.photo.is-missing {
+    background: transparent;
+    border: 1px dashed var(--line);
+    box-shadow: none;
+}
+
+.photo.is-missing img {
+    display: none;
+}
+
+.photo.is-missing::before {
+    content: "Photo coming soon";
+    aspect-ratio: 4 / 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+}
+
 .photo.placeholder {
     aspect-ratio: 4 / 5;
     display: flex;
