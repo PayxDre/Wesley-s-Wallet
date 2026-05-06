@@ -1,69 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="Wesley's lion teddy sitting on a soft Bitcoin coin">
-  <!-- Soft drop shadow -->
-  <ellipse cx="100" cy="228" rx="60" ry="5" fill="#2d2a26" opacity="0.1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="Wesley's lion teddy sitting on a Bitcoin coin">
+  <!-- Soft drop shadow under coin -->
+  <ellipse cx="100" cy="234" rx="60" ry="5" fill="#2d2a26" opacity="0.12"/>
 
-  <!-- Soft Bitcoin coin -->
-  <circle cx="100" cy="195" r="34" fill="#f0d59c"/>
-  <circle cx="100" cy="195" r="30" fill="#f7e3b3" opacity="0.7"/>
-  <circle cx="100" cy="195" r="34" fill="none" stroke="#c98f3d" stroke-width="1.5" opacity="0.55"/>
+  <!-- Bitcoin coin (larger now) -->
+  <circle cx="100" cy="186" r="48" fill="#f0d59c"/>
+  <circle cx="100" cy="186" r="44" fill="#f7e3b3" opacity="0.7"/>
+  <circle cx="100" cy="186" r="48" fill="none" stroke="#c98f3d" stroke-width="2" opacity="0.5"/>
 
-  <!-- Bitcoin ₿ symbol -->
-  <text x="100" y="208" text-anchor="middle"
+  <!-- Bitcoin ₿ symbol (larger and bolder) -->
+  <text x="100" y="206" text-anchor="middle"
         font-family="Georgia, 'Times New Roman', serif"
-        font-size="36" font-weight="700" fill="#b8852a">₿</text>
+        font-size="56" font-weight="700" fill="#b8852a">₿</text>
 
-  <!-- Lion body resting above coin -->
-  <ellipse cx="100" cy="172" rx="40" ry="15" fill="#d9a55c"/>
-  <ellipse cx="100" cy="176" rx="22" ry="9" fill="#f0c787"/>
-
-  <!-- Front paws hanging over coin -->
-  <ellipse cx="76" cy="182" rx="11" ry="8" fill="#d9a55c"/>
-  <ellipse cx="124" cy="182" rx="11" ry="8" fill="#d9a55c"/>
-  <ellipse cx="76" cy="184" rx="5.5" ry="4" fill="#f0c787"/>
-  <ellipse cx="124" cy="184" rx="5.5" ry="4" fill="#f0c787"/>
-
-  <!-- Mane fluff (back layer) -->
+  <!-- Lion mane fluff (back layer) -->
   <g fill="#c98f3d">
-    <circle cx="55" cy="62" r="13"/>
-    <circle cx="48" cy="92" r="13"/>
-    <circle cx="52" cy="122" r="13"/>
-    <circle cx="76" cy="44" r="13"/>
-    <circle cx="100" cy="38" r="13"/>
-    <circle cx="124" cy="44" r="13"/>
-    <circle cx="148" cy="62" r="13"/>
-    <circle cx="152" cy="92" r="13"/>
-    <circle cx="148" cy="122" r="13"/>
-    <circle cx="78" cy="142" r="13"/>
-    <circle cx="122" cy="142" r="13"/>
+    <circle cx="52" cy="78" r="15"/>
+    <circle cx="48" cy="112" r="15"/>
+    <circle cx="72" cy="48" r="15"/>
+    <circle cx="100" cy="38" r="15"/>
+    <circle cx="128" cy="48" r="15"/>
+    <circle cx="148" cy="78" r="15"/>
+    <circle cx="152" cy="112" r="15"/>
+    <!-- Bottom mane bumps nestle onto the coin (the teddy "sitting") -->
+    <circle cx="74" cy="142" r="14"/>
+    <circle cx="100" cy="148" r="14"/>
+    <circle cx="126" cy="142" r="14"/>
   </g>
 
-  <!-- Main mane circle -->
-  <circle cx="100" cy="95" r="48" fill="#d9a55c"/>
+  <!-- Main mane circle (the teddy body) -->
+  <circle cx="100" cy="95" r="52" fill="#d9a55c"/>
 
-  <!-- Face -->
-  <circle cx="100" cy="100" r="34" fill="#f5d8a8"/>
+  <!-- Inner face -->
+  <circle cx="100" cy="100" r="36" fill="#f5d8a8"/>
 
   <!-- Ears -->
-  <ellipse cx="78" cy="73" rx="8" ry="10" fill="#c98f3d"/>
-  <ellipse cx="122" cy="73" rx="8" ry="10" fill="#c98f3d"/>
-  <ellipse cx="78" cy="75" rx="4" ry="6" fill="#f0a87a"/>
-  <ellipse cx="122" cy="75" rx="4" ry="6" fill="#f0a87a"/>
+  <ellipse cx="76" cy="73" rx="10" ry="12" fill="#c98f3d"/>
+  <ellipse cx="124" cy="73" rx="10" ry="12" fill="#c98f3d"/>
+  <ellipse cx="76" cy="75" rx="5" ry="7" fill="#f0a87a"/>
+  <ellipse cx="124" cy="75" rx="5" ry="7" fill="#f0a87a"/>
 
   <!-- Eyes -->
-  <ellipse cx="87" cy="97" rx="4" ry="5.5" fill="#2d2a26"/>
-  <ellipse cx="113" cy="97" rx="4" ry="5.5" fill="#2d2a26"/>
-  <circle cx="88.2" cy="95" r="1.4" fill="#fff"/>
-  <circle cx="114.2" cy="95" r="1.4" fill="#fff"/>
+  <ellipse cx="86" cy="98" rx="5" ry="6.5" fill="#2d2a26"/>
+  <ellipse cx="114" cy="98" rx="5" ry="6.5" fill="#2d2a26"/>
+  <circle cx="87.5" cy="96" r="1.6" fill="#fff"/>
+  <circle cx="115.5" cy="96" r="1.6" fill="#fff"/>
 
   <!-- Cheek blush -->
-  <ellipse cx="80" cy="113" rx="6" ry="3" fill="#e88a7a" opacity="0.4"/>
-  <ellipse cx="120" cy="113" rx="6" ry="3" fill="#e88a7a" opacity="0.4"/>
+  <ellipse cx="78" cy="115" rx="6" ry="3" fill="#e88a7a" opacity="0.45"/>
+  <ellipse cx="122" cy="115" rx="6" ry="3" fill="#e88a7a" opacity="0.45"/>
 
   <!-- Nose -->
-  <path d="M 93 112 Q 100 110 107 112 L 100 119 Z" fill="#2d2a26"/>
+  <path d="M 93 114 Q 100 112 107 114 L 100 121 Z" fill="#2d2a26"/>
 
-  <!-- Mouth (small smile) -->
-  <path d="M 100 119 Q 95 124 90 122" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-  <path d="M 100 119 Q 105 124 110 122" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Smile -->
+  <path d="M 100 121 Q 95 127 89 125" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M 100 121 Q 105 127 111 125" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
 </svg>
