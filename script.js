@@ -177,12 +177,14 @@ function setupRangeButtons() {
 }
 
 function setAgeLine() {
+    const ageEl = $('#age-line');
+    if (!ageEl) return;
     const ms = CONFIG.passing - CONFIG.birth;
     const days = Math.round(ms / (1000 * 60 * 60 * 24));
     const years = Math.floor(days / 365);
     const remaining = days - years * 365;
     if (years === 1 && remaining > 0) {
-        $('#age-line').textContent = `One year and ${remaining} days of light.`;
+        ageEl.textContent = `One year and ${remaining} days of light.`;
     }
 }
 
