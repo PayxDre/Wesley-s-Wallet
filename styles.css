@@ -75,6 +75,18 @@ a:hover {
     max-width: 640px;
 }
 
+.logo {
+    display: block;
+    width: 120px;
+    height: auto;
+    margin: 0 auto 28px;
+    filter: drop-shadow(0 4px 14px rgba(45, 42, 38, 0.08));
+}
+
+@media (max-width: 600px) {
+    .logo { width: 96px; margin-bottom: 22px; }
+}
+
 .eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.28em;
