@@ -515,6 +515,40 @@ a:hover {
     .eulogy-shift { font-size: 1.2rem; }
 }
 
+/* ---------- Reading (Grief Is Like Glitter) ---------- */
+.reading-content {
+    background: #fff;
+    padding: 56px 56px 48px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.85;
+    color: var(--ink);
+}
+
+.reading-content p {
+    margin: 0 0 1.4em;
+}
+
+.reading-signoff {
+    text-align: center;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 1.15rem;
+    margin-top: 2.4em !important;
+    line-height: 1.55;
+}
+
+@media (max-width: 600px) {
+    .reading-content {
+        padding: 36px 28px 32px;
+        font-size: 1.08rem;
+        line-height: 1.8;
+    }
+    .reading-signoff { font-size: 1.05rem; }
+}
+
 /* ---------- Declaration ---------- */
 .declaration-card {
     background: #fff;
