@@ -429,6 +429,57 @@ a:hover {
     font-style: italic;
 }
 
+/* ---------- Eulogy ---------- */
+.eulogy-content {
+    background: #fff;
+    padding: 56px 56px 48px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: var(--ink);
+}
+
+.eulogy-content p {
+    margin: 0 0 1.4em;
+}
+
+.eulogy-opener {
+    font-style: italic;
+    font-size: 2rem;
+    color: var(--gold);
+    text-align: center;
+    margin: 0 0 1.6em !important;
+    letter-spacing: 0.04em;
+}
+
+.eulogy-shift {
+    font-style: italic;
+    font-size: 1.35rem;
+    color: var(--gold);
+    margin-top: 1.8em !important;
+    margin-bottom: 0.6em !important;
+}
+
+.eulogy-signoff {
+    text-align: right;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-top: 2.4em !important;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .eulogy-content {
+        padding: 36px 28px 32px;
+        font-size: 1.08rem;
+        line-height: 1.75;
+    }
+    .eulogy-opener { font-size: 1.6rem; }
+    .eulogy-shift { font-size: 1.2rem; }
+}
+
 /* ---------- Footer ---------- */
 .footer {
     padding: 60px 0 80px;
