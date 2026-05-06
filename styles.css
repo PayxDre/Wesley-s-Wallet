@@ -490,11 +490,19 @@ a:hover {
 
 .declaration-text {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.25rem;
-    line-height: 1.75;
+    font-style: italic;
+    font-size: 1.55rem;
+    line-height: 1.55;
     color: var(--ink);
-    margin: 0 0 32px;
-    white-space: pre-wrap;
+    text-align: center;
+    margin: 8px 0 36px;
+    letter-spacing: 0.01em;
+}
+
+@media (max-width: 600px) {
+    .declaration-text {
+        font-size: 1.25rem;
+    }
 }
 
 .declaration-meta {
