@@ -188,12 +188,79 @@ function setAgeLine() {
     }
 }
 
-function handleMissingPhotos() {
-    document.querySelectorAll('.photo img').forEach((img) => {
-        const markMissing = () => img.closest('.photo').classList.add('is-missing');
-        if (img.complete && img.naturalWidth === 0) markMissing();
-        img.addEventListener('error', markMissing);
+const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
+const GALLERY_PATH = 'assets/photos';
+const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
+const GALLERY_CACHE_KEY = 'wesley-photos-v1';
+const GALLERY_CACHE_TTL = 60 * 60 * 1000;
+const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
+
+async function loadGallery() {
+    const grid = document.getElementById('photo-grid');
+    const empty = document.getElementById('gallery-empty');
+    if (!grid) return;
+
+    let names = readPhotoCache();
+
+    if (!names) {
+        names = await fetchPhotoList();
+        if (names.length) writePhotoCache(names);
+    }
+
+    if (!names.length) {
+        if (empty) empty.hidden = false;
+        return;
+    }
+
+    grid.innerHTML = '';
+    names.forEach((name) => {
+        const figure = document.createElement('figure');
+        figure.className = 'photo';
+        const img = document.createElement('img');
+        img.src = `assets/photos/${name}`;
+        img.alt = 'Wesley';
+        img.loading = 'lazy';
+        img.addEventListener('error', () => figure.classList.add('is-missing'));
+        figure.appendChild(img);
+        grid.appendChild(figure);
     });
+}
+
+async function fetchPhotoList() {
+    for (const branch of GALLERY_BRANCHES) {
+        try {
+            const url = `https://api.github.com/repos/${GALLERY_REPO}/contents/${GALLERY_PATH}?ref=${encodeURIComponent(branch)}`;
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (!Array.isArray(data)) continue;
+            const names = data
+                .filter((f) => f.type === 'file' && IMAGE_RX.test(f.name))
+                .map((f) => f.name);
+            if (names.length) return names;
+        } catch (e) {
+            console.warn('photo list fetch failed for', branch, e);
+        }
+    }
+    return [];
+}
+
+function readPhotoCache() {
+    try {
+        const raw = localStorage.getItem(GALLERY_CACHE_KEY);
+        if (!raw) return null;
+        const { t, names } = JSON.parse(raw);
+        if (Date.now() - t > GALLERY_CACHE_TTL) return null;
+        return Array.isArray(names) ? names : null;
+    } catch {
+        return null;
+    }
+}
+
+function writePhotoCache(names) {
+    try {
+        localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify({ t: Date.now(), names }));
+    } catch {}
 }
 
 function setFooterTime() {
@@ -221,7 +288,7 @@ function loadChartAdapter() {
     setAgeLine();
     setFooterTime();
     setupRangeButtons();
-    handleMissingPhotos();
+    loadGallery();
     try {
         await loadChartAdapter();
     } catch (e) {
