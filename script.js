@@ -191,9 +191,10 @@ function setAgeLine() {
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
 const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
-const GALLERY_CACHE_KEY = 'wesley-photos-v1';
-const GALLERY_CACHE_TTL = 60 * 60 * 1000;
+const GALLERY_CACHE_KEY = 'wesley-photos-v2';
+const GALLERY_CACHE_TTL = 10 * 60 * 1000;
 const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
+const MAIN_RX = /^main\./i;
 
 async function loadGallery() {
     const grid = document.getElementById('photo-grid');
@@ -201,10 +202,15 @@ async function loadGallery() {
     if (!grid) return;
 
     let names = readPhotoCache();
-
     if (!names) {
         names = await fetchPhotoList();
         if (names.length) writePhotoCache(names);
+    }
+
+    const mainName = names.find((n) => MAIN_RX.test(n));
+    if (mainName) {
+        applyHeroPhoto(mainName);
+        names = names.filter((n) => n !== mainName);
     }
 
     if (!names.length) {
@@ -217,13 +223,28 @@ async function loadGallery() {
         const figure = document.createElement('figure');
         figure.className = 'photo';
         const img = document.createElement('img');
-        img.src = `assets/photos/${name}`;
+        img.src = `assets/photos/${encodeURIComponent(name)}`;
         img.alt = 'Wesley';
         img.loading = 'lazy';
         img.addEventListener('error', () => figure.classList.add('is-missing'));
         figure.appendChild(img);
         grid.appendChild(figure);
     });
+}
+
+function applyHeroPhoto(name) {
+    const container = document.getElementById('hero-photo');
+    const img = document.getElementById('hero-photo-img');
+    const logo = document.getElementById('hero-logo');
+    if (!container || !img) return;
+    img.addEventListener('load', () => {
+        container.hidden = false;
+        if (logo) logo.style.display = 'none';
+    }, { once: true });
+    img.addEventListener('error', () => {
+        container.hidden = true;
+    }, { once: true });
+    img.src = `assets/photos/${encodeURIComponent(name)}`;
 }
 
 async function fetchPhotoList() {
