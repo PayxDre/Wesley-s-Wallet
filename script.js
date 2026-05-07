@@ -191,7 +191,7 @@ function setAgeLine() {
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
 const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
-const GALLERY_CACHE_KEY = 'wesley-photos-v3';
+const GALLERY_CACHE_KEY = 'wesley-photos-v4';
 const GALLERY_CACHE_TTL = 10 * 60 * 1000;
 const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
 const VIDEO_RX = /\.(mp4|webm|ogg)$/i;
