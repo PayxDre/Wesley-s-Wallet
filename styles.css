@@ -33,10 +33,10 @@ body {
 /* ---------- Intro animation (lion + balloon floats up on first load) ---------- */
 .intro-fly {
     position: fixed;
-    bottom: -360px;
+    bottom: -420px;
     left: 50%;
-    width: 180px;
-    margin-left: -90px;
+    width: 200px;
+    margin-left: -100px;
     pointer-events: none;
     z-index: 9999;
     animation: introFloatUp 8s ease-out 0.4s forwards;
@@ -55,7 +55,7 @@ body {
 }
 
 @keyframes introFloatUp {
-    0%   { bottom: -360px; opacity: 0; }
+    0%   { bottom: -420px; opacity: 0; }
     8%   { opacity: 1; }
     88%  { opacity: 1; }
     100% { bottom: 100vh; opacity: 0; }
