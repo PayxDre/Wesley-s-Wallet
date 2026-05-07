@@ -75,16 +75,37 @@ a:hover {
     max-width: 640px;
 }
 
-.logo {
+.lion-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 64px 24px;
+    background: var(--bg);
+}
+
+.lion-divider::before,
+.lion-divider::after {
+    content: "";
+    flex: 0 1 90px;
+    height: 1px;
+    background: var(--gold-soft);
+    opacity: 0.7;
+}
+
+.lion-mark {
     display: block;
-    width: 120px;
+    width: 84px;
     height: auto;
-    margin: 0 auto 28px;
+    flex: 0 0 auto;
     filter: drop-shadow(0 4px 14px rgba(45, 42, 38, 0.08));
 }
 
 @media (max-width: 600px) {
-    .logo { width: 96px; margin-bottom: 22px; }
+    .lion-divider { padding: 48px 16px; gap: 18px; }
+    .lion-mark { width: 68px; }
+    .lion-divider::before,
+    .lion-divider::after { flex: 0 1 60px; }
 }
 
 .hero-photo {

@@ -235,9 +235,14 @@ async function loadGallery() {
             figure.classList.add('photo--video');
             element = document.createElement('video');
             element.src = `assets/photos/${encodeURIComponent(name)}`;
-            element.controls = true;
-            element.preload = 'metadata';
+            element.autoplay = true;
+            element.loop = true;
+            element.muted = true;
+            element.defaultMuted = true;
             element.playsInline = true;
+            element.setAttribute('muted', '');
+            element.setAttribute('playsinline', '');
+            element.preload = 'auto';
             const posterName = findPosterFor(name, posters);
             if (posterName) element.poster = `assets/photos/${encodeURIComponent(posterName)}`;
         } else {
@@ -263,15 +268,9 @@ function findPosterFor(videoName, posters) {
 function applyHeroPhoto(name) {
     const container = document.getElementById('hero-photo');
     const img = document.getElementById('hero-photo-img');
-    const logo = document.getElementById('hero-logo');
     if (!container || !img) return;
-    img.addEventListener('load', () => {
-        container.hidden = false;
-        if (logo) logo.style.display = 'none';
-    }, { once: true });
-    img.addEventListener('error', () => {
-        container.hidden = true;
-    }, { once: true });
+    img.addEventListener('load', () => { container.hidden = false; }, { once: true });
+    img.addEventListener('error', () => { container.hidden = true; }, { once: true });
     img.src = `assets/photos/${encodeURIComponent(name)}`;
 }
 
