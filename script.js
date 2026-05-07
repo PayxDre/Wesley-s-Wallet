@@ -7,6 +7,10 @@ const CONFIG = {
     walletAddress: 'bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293',
     birth: new Date('2025-04-20T00:00:00'),
     passing: new Date('2026-04-25T00:00:00'),
+    // Approximate Bitcoin block height at passing (April 25, 2026).
+    // Anchored to the inscription in block 947,318 on April 30, 2026
+    // minus ~5 days × 144 blocks/day.
+    blockAtPassing: 946600,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -43,6 +47,83 @@ async function fetchWalletBalance(address) {
         (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) +
         (data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum);
     return sats;
+}
+
+async function fetchCurrentBlockHeight() {
+    const res = await fetch('https://blockstream.info/api/blocks/tip/height');
+    if (!res.ok) throw new Error('block height fetch failed');
+    return parseInt(await res.text(), 10);
+}
+
+async function fetchBTCPriceAtPassing() {
+    const cacheKey = 'btc-price-at-passing-2026-04-25';
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+        const v = parseFloat(cached);
+        if (v > 0) return v;
+    }
+    const dateStr = '25-04-2026';
+    const url = `https://api.coingecko.com/api/v3/coins/bitcoin/history?date=${dateStr}&localization=false`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('historical price fetch failed');
+    const data = await res.json();
+    const price = data?.market_data?.current_price?.usd;
+    if (!price) throw new Error('no historical price');
+    localStorage.setItem(cacheKey, String(price));
+    return price;
+}
+
+async function loadGrowthMetrics(currentSats, currentPrice) {
+    const $val = (id) => document.getElementById(id);
+    const setVal = (id, txt, cls) => {
+        const el = $val(id);
+        if (!el) return;
+        el.textContent = txt;
+        if (cls !== undefined) {
+            el.classList.remove('positive', 'negative');
+            if (cls) el.classList.add(cls);
+        }
+    };
+
+    // Days since passing
+    const days = Math.max(0, Math.floor((Date.now() - CONFIG.passing.getTime()) / 86400000));
+    setVal('growth-days', days.toLocaleString());
+
+    // Bitcoin blocks since passing
+    try {
+        const height = await fetchCurrentBlockHeight();
+        const blocks = Math.max(0, height - CONFIG.blockAtPassing);
+        setVal('growth-blocks', blocks.toLocaleString());
+    } catch (e) {
+        setVal('growth-blocks', `~${Math.floor(days * 144).toLocaleString()}`);
+    }
+
+    // BTC price change & wallet growth
+    try {
+        const passPrice = await fetchBTCPriceAtPassing();
+        const priceDelta = currentPrice - passPrice;
+        const pricePct = (priceDelta / passPrice) * 100;
+        const sign = priceDelta >= 0 ? '+' : '';
+        setVal('growth-price', `${sign}${pricePct.toFixed(1)}%`, priceDelta >= 0 ? 'positive' : 'negative');
+        setVal('growth-price-sub', `${sign}${fmtUSD(priceDelta)} per BTC`);
+
+        if (currentSats > 0) {
+            const btc = currentSats / 1e8;
+            const valueDelta = btc * priceDelta;
+            const valueAtPass = btc * passPrice;
+            const valuePct = (valueDelta / valueAtPass) * 100;
+            const sign2 = valueDelta >= 0 ? '+' : '';
+            setVal('growth-value', `${sign2}${fmtUSD(valueDelta)}`, valueDelta >= 0 ? 'positive' : 'negative');
+            setVal('growth-value-sub', `${sign2}${valuePct.toFixed(1)}% on ${btc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC`);
+        } else {
+            setVal('growth-value', '—', '');
+            setVal('growth-value-sub', 'Awaiting first deposit');
+        }
+    } catch (e) {
+        console.warn('growth price fetch failed:', e);
+        setVal('growth-price', '—', '');
+        setVal('growth-value', '—', '');
+    }
 }
 
 async function fetchPriceHistory(days) {
@@ -159,7 +240,9 @@ async function loadWallet() {
             const sats = await fetchWalletBalance(CONFIG.walletAddress);
             $('#btc-balance').textContent = fmtBTC(sats);
             $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
+            loadGrowthMetrics(sats, price.usd);
         } else {
+            loadGrowthMetrics(0, price.usd);
             $('#btc-balance').textContent = '… BTC';
             $('#usd-value').textContent = 'Awaiting wallet';
         }
