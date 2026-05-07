@@ -205,16 +205,34 @@ function renderChart(prices) {
     });
 }
 
+let cachedBalanceBTC = null;
+async function getBalanceBTC() {
+    if (cachedBalanceBTC !== null) return cachedBalanceBTC;
+    if (!CONFIG.walletAddress) return 0;
+    try {
+        const sats = await fetchWalletBalance(CONFIG.walletAddress);
+        cachedBalanceBTC = sats / 1e8;
+    } catch (e) {
+        cachedBalanceBTC = 0;
+    }
+    return cachedBalanceBTC;
+}
+
 async function loadChart(days) {
     const note = $('#chart-note');
-    note.textContent = 'Loading price history…';
+    note.textContent = 'Loading wallet history…';
     try {
-        const prices = await fetchPriceHistory(days);
-        // Chart.js time scale needs date adapter; we draw with Date objects + linear fallback.
-        renderChart(prices);
+        const [prices, btc] = await Promise.all([fetchPriceHistory(days), getBalanceBTC()]);
+        if (btc <= 0) {
+            note.textContent = 'Wallet is empty. Chart will fill in once funded.';
+            if (chart) { chart.destroy(); chart = null; }
+            return;
+        }
+        const walletValues = prices.map(([t, p]) => [t, btc * p]);
+        renderChart(walletValues);
         note.textContent = '';
     } catch (e) {
-        note.textContent = 'Could not load price history right now.';
+        note.textContent = 'Could not load wallet history right now.';
         console.error(e);
     }
 }
@@ -238,6 +256,7 @@ async function loadWallet() {
             a.textContent = CONFIG.walletAddress;
             addrEl.appendChild(a);
             const sats = await fetchWalletBalance(CONFIG.walletAddress);
+            cachedBalanceBTC = sats / 1e8;
             $('#btc-balance').textContent = fmtBTC(sats);
             $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
             loadGrowthMetrics(sats, price.usd);

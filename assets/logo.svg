@@ -1,101 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-label="Wesley's stuffed lion teddy beside a Bitcoin coin">
-  <!-- Soft ground shadow under both -->
-  <ellipse cx="160" cy="208" rx="145" ry="6" fill="#2d2a26" opacity="0.12"/>
+  <!-- Ground shadow -->
+  <ellipse cx="160" cy="208" rx="145" ry="5" fill="#2d2a26" opacity="0.12"/>
 
-  <!-- Bitcoin coin (right side) -->
+  <!-- Bitcoin coin (right) -->
   <g>
-    <circle cx="232" cy="125" r="68" fill="#f0d59c"/>
-    <circle cx="232" cy="125" r="64" fill="#f7e3b3" opacity="0.7"/>
-    <circle cx="232" cy="125" r="68" fill="none" stroke="#c98f3d" stroke-width="2" opacity="0.5"/>
-    <text x="232" y="148" text-anchor="middle"
+    <circle cx="240" cy="128" r="64" fill="#f0d59c"/>
+    <circle cx="240" cy="128" r="60" fill="#f7e3b3" opacity="0.7"/>
+    <circle cx="240" cy="128" r="64" fill="none" stroke="#c98f3d" stroke-width="2" opacity="0.5"/>
+    <text x="240" y="150" text-anchor="middle"
           font-family="Georgia, 'Times New Roman', serif"
-          font-size="74" font-weight="700" fill="#b8852a">₿</text>
+          font-size="70" font-weight="700" fill="#b8852a">₿</text>
   </g>
 
-  <!-- Lion teddy: symmetric sitting plush, mane just touches the coin -->
+  <!-- Lion teddy -->
   <g>
-    <!-- Tail behind body, curling out to the left with tufted tip -->
-    <path d="M 80 178 C 50 178 26 162 28 130"
-          stroke="#d9a55c" stroke-width="10" stroke-linecap="round" fill="none"/>
-    <g transform="translate(28 130)">
-      <circle r="12" fill="#c98f3d"/>
-      <circle cx="-6" cy="-5" r="7" fill="#b8852a"/>
-      <circle cx="5" cy="-3" r="6" fill="#b8852a"/>
-      <circle cx="0" cy="6" r="5" fill="#b8852a"/>
+    <!-- Tail behind body (left side), with tufted tip -->
+    <path d="M 78 175 C 50 178 22 168 24 128"
+          stroke="#d68c3c" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <g transform="translate(24 128)">
+      <circle r="13" fill="#c98a3a"/>
+      <circle cx="-5" cy="-6" r="8" fill="#b07628"/>
+      <circle cx="6" cy="-4" r="7" fill="#b07628"/>
+      <circle cx="-1" cy="7" r="6" fill="#b07628"/>
+      <circle cx="7" cy="5" r="5" fill="#b07628"/>
     </g>
 
-    <!-- Body -->
-    <ellipse cx="112" cy="158" rx="48" ry="34" fill="#d9a55c"/>
+    <!-- Body (small round bean) -->
+    <ellipse cx="110" cy="150" rx="42" ry="30" fill="#e8a548"/>
+    <!-- Subtle bottom shadow -->
+    <ellipse cx="110" cy="170" rx="38" ry="9" fill="#b07628" opacity="0.25"/>
     <!-- Tummy patch -->
-    <ellipse cx="112" cy="166" rx="28" ry="22" fill="#f5d8a8"/>
+    <ellipse cx="110" cy="158" rx="26" ry="22" fill="#fae5bc"/>
 
-    <!-- Splayed front legs / paw pads facing the viewer -->
+    <!-- Splayed front legs / paws -->
     <g>
-      <ellipse cx="80" cy="190" rx="22" ry="14" fill="#d9a55c"/>
-      <ellipse cx="80" cy="194" rx="14" ry="7" fill="#f5d8a8"/>
-      <ellipse cx="80" cy="195" rx="5" ry="3" fill="#e88a7a" opacity="0.65"/>
-      <circle cx="71" cy="191" r="2.4" fill="#e88a7a" opacity="0.65"/>
-      <circle cx="80" cy="189" r="2.4" fill="#e88a7a" opacity="0.65"/>
-      <circle cx="89" cy="191" r="2.4" fill="#e88a7a" opacity="0.65"/>
+      <ellipse cx="78" cy="186" rx="22" ry="13" fill="#e8a548"/>
+      <ellipse cx="78" cy="188" rx="14" ry="7" fill="#fae5bc"/>
+      <ellipse cx="78" cy="189" rx="5" ry="3" fill="#e88a7a" opacity="0.7"/>
+      <circle cx="69" cy="185" r="2.4" fill="#e88a7a" opacity="0.7"/>
+      <circle cx="78" cy="183" r="2.4" fill="#e88a7a" opacity="0.7"/>
+      <circle cx="87" cy="185" r="2.4" fill="#e88a7a" opacity="0.7"/>
     </g>
     <g>
-      <ellipse cx="144" cy="190" rx="22" ry="14" fill="#d9a55c"/>
-      <ellipse cx="144" cy="194" rx="14" ry="7" fill="#f5d8a8"/>
-      <ellipse cx="144" cy="195" rx="5" ry="3" fill="#e88a7a" opacity="0.65"/>
-      <circle cx="135" cy="191" r="2.4" fill="#e88a7a" opacity="0.65"/>
-      <circle cx="144" cy="189" r="2.4" fill="#e88a7a" opacity="0.65"/>
-      <circle cx="153" cy="191" r="2.4" fill="#e88a7a" opacity="0.65"/>
+      <ellipse cx="142" cy="186" rx="22" ry="13" fill="#e8a548"/>
+      <ellipse cx="142" cy="188" rx="14" ry="7" fill="#fae5bc"/>
+      <ellipse cx="142" cy="189" rx="5" ry="3" fill="#e88a7a" opacity="0.7"/>
+      <circle cx="133" cy="185" r="2.4" fill="#e88a7a" opacity="0.7"/>
+      <circle cx="142" cy="183" r="2.4" fill="#e88a7a" opacity="0.7"/>
+      <circle cx="151" cy="185" r="2.4" fill="#e88a7a" opacity="0.7"/>
     </g>
 
     <!-- Arms hugging body sides -->
-    <ellipse cx="62" cy="160" rx="12" ry="22" fill="#d9a55c"/>
-    <circle cx="62" cy="180" r="10" fill="#d9a55c"/>
-    <circle cx="62" cy="181" r="6" fill="#f0a87a"/>
-    <ellipse cx="162" cy="160" rx="12" ry="22" fill="#d9a55c"/>
-    <circle cx="162" cy="180" r="10" fill="#d9a55c"/>
-    <circle cx="162" cy="181" r="6" fill="#f0a87a"/>
+    <ellipse cx="66" cy="155" rx="11" ry="20" fill="#e8a548"/>
+    <circle cx="66" cy="172" r="10" fill="#e8a548"/>
+    <circle cx="66" cy="173" r="5.5" fill="#fae5bc"/>
+    <ellipse cx="154" cy="155" rx="11" ry="20" fill="#e8a548"/>
+    <circle cx="154" cy="172" r="10" fill="#e8a548"/>
+    <circle cx="154" cy="173" r="5.5" fill="#fae5bc"/>
 
-    <!-- Mane fluff (back layer of bumps) -->
-    <g fill="#c98f3d">
-      <circle cx="62" cy="84" r="14"/>
-      <circle cx="55" cy="115" r="14"/>
-      <circle cx="78" cy="48" r="14"/>
-      <circle cx="112" cy="38" r="14"/>
-      <circle cx="146" cy="48" r="14"/>
-      <circle cx="168" cy="80" r="14"/>
-      <circle cx="172" cy="112" r="14"/>
-      <circle cx="160" cy="140" r="14"/>
-      <circle cx="78" cy="140" r="14"/>
+    <!-- Mane fluff (petal-like bumps around the head) -->
+    <g fill="#c98a3a">
+      <circle cx="60" cy="92" r="17"/>
+      <circle cx="65" cy="62" r="17"/>
+      <circle cx="86" cy="42" r="17"/>
+      <circle cx="110" cy="34" r="17"/>
+      <circle cx="134" cy="42" r="17"/>
+      <circle cx="155" cy="62" r="17"/>
+      <circle cx="160" cy="92" r="17"/>
+      <circle cx="155" cy="120" r="17"/>
+      <circle cx="138" cy="138" r="16"/>
+      <circle cx="82" cy="138" r="16"/>
+      <circle cx="65" cy="120" r="17"/>
     </g>
 
+    <!-- Subtle inner mane shadow for depth -->
+    <circle cx="110" cy="95" r="46" fill="#b07628" opacity="0.18"/>
+
     <!-- Main mane disk -->
-    <circle cx="112" cy="92" r="48" fill="#d9a55c"/>
+    <circle cx="110" cy="92" r="48" fill="#e8a548"/>
 
     <!-- Face -->
-    <circle cx="112" cy="102" r="34" fill="#f5d8a8"/>
+    <circle cx="110" cy="102" r="36" fill="#fae5bc"/>
 
-    <!-- Ears -->
-    <ellipse cx="86" cy="76" rx="10" ry="12" fill="#c98f3d"/>
-    <ellipse cx="138" cy="76" rx="10" ry="12" fill="#c98f3d"/>
-    <ellipse cx="86" cy="78" rx="5.5" ry="7.5" fill="#f0a87a"/>
-    <ellipse cx="138" cy="78" rx="5.5" ry="7.5" fill="#f0a87a"/>
+    <!-- Soft chin shadow where face meets body -->
+    <ellipse cx="110" cy="135" rx="22" ry="6" fill="#d4a070" opacity="0.25"/>
 
-    <!-- Big plush eyes -->
-    <ellipse cx="96" cy="102" rx="5.5" ry="7.5" fill="#2d2a26"/>
-    <ellipse cx="128" cy="102" rx="5.5" ry="7.5" fill="#2d2a26"/>
-    <circle cx="98" cy="99" r="2" fill="#fff"/>
-    <circle cx="130" cy="99" r="2" fill="#fff"/>
+    <!-- Ears (peeking up out of mane) -->
+    <ellipse cx="84" cy="58" rx="11" ry="14" fill="#c98a3a"/>
+    <ellipse cx="136" cy="58" rx="11" ry="14" fill="#c98a3a"/>
+    <ellipse cx="84" cy="60" rx="6" ry="9" fill="#f0a87a"/>
+    <ellipse cx="136" cy="60" rx="6" ry="9" fill="#f0a87a"/>
+
+    <!-- Eyes (large, plush style) -->
+    <ellipse cx="94" cy="102" rx="6" ry="9" fill="#2d2a26"/>
+    <ellipse cx="126" cy="102" rx="6" ry="9" fill="#2d2a26"/>
+    <!-- Eye sparkles -->
+    <circle cx="96" cy="98" r="2.5" fill="#fff"/>
+    <circle cx="92" cy="106" r="1.2" fill="#fff"/>
+    <circle cx="128" cy="98" r="2.5" fill="#fff"/>
+    <circle cx="124" cy="106" r="1.2" fill="#fff"/>
 
     <!-- Cheek blush -->
-    <ellipse cx="83" cy="118" rx="7" ry="3.5" fill="#e88a7a" opacity="0.5"/>
-    <ellipse cx="141" cy="118" rx="7" ry="3.5" fill="#e88a7a" opacity="0.5"/>
+    <ellipse cx="80" cy="120" rx="8" ry="4" fill="#e88a7a" opacity="0.55"/>
+    <ellipse cx="140" cy="120" rx="8" ry="4" fill="#e88a7a" opacity="0.55"/>
 
     <!-- Nose -->
-    <path d="M 104 117 Q 112 114 120 117 L 112 125 Z" fill="#2d2a26"/>
+    <path d="M 102 117 Q 110 114 118 117 Q 116 124 110 126 Q 104 124 102 117 Z" fill="#2d2a26"/>
 
     <!-- Smile -->
-    <path d="M 112 125 Q 106 131 100 129" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <path d="M 112 125 Q 118 131 124 129" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M 110 126 Q 104 132 98 130" stroke="#2d2a26" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M 110 126 Q 116 132 122 130" stroke="#2d2a26" stroke-width="2" fill="none" stroke-linecap="round"/>
   </g>
 </svg>
