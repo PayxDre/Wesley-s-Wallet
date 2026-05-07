@@ -30,6 +30,46 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* ---------- Intro animation (lion + balloon floats up on first load) ---------- */
+.intro-fly {
+    position: fixed;
+    bottom: -360px;
+    left: 50%;
+    width: 180px;
+    margin-left: -90px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: introFloatUp 8s ease-out 0.4s forwards;
+}
+
+.intro-fly-inner {
+    animation: introSway 2.6s ease-in-out infinite;
+    transform-origin: center top;
+}
+
+.intro-fly svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 8px 22px rgba(45, 42, 38, 0.18));
+}
+
+@keyframes introFloatUp {
+    0%   { bottom: -360px; opacity: 0; }
+    8%   { opacity: 1; }
+    88%  { opacity: 1; }
+    100% { bottom: 100vh; opacity: 0; }
+}
+
+@keyframes introSway {
+    0%, 100% { transform: translateX(-12px) rotate(-3deg); }
+    50%      { transform: translateX(12px) rotate(3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intro-fly { display: none; }
+}
+
 /* ---------- Floating background ---------- */
 .floating-bg {
     position: fixed;

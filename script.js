@@ -440,7 +440,15 @@ function loadChartAdapter() {
     });
 }
 
+function cleanupIntroFly() {
+    setTimeout(() => {
+        const el = document.getElementById('intro-fly');
+        if (el) el.remove();
+    }, 9500);
+}
+
 (async function init() {
+    cleanupIntroFly();
     setAgeLine();
     setFooterTime();
     setupRangeButtons();
