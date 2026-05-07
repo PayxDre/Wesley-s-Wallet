@@ -29,6 +29,45 @@
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="ic-heart" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </symbol>
+            <symbol id="ic-bear" viewBox="0 0 24 24">
+                <circle cx="12" cy="13" r="8"/>
+                <circle cx="5.5" cy="6" r="3"/>
+                <circle cx="18.5" cy="6" r="3"/>
+                <circle cx="9" cy="12" r="1" fill="#fff"/>
+                <circle cx="15" cy="12" r="1" fill="#fff"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="floating-bg" aria-hidden="true">
+        <span class="float-item float-heart" style="--x:6%;--y:12%;--d:0s;--r:22s;--s:22px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:22%;--y:6%;--d:3s;--r:18s;--s:26px">₿</span>
+        <span class="float-item float-bear"  style="--x:38%;--y:14%;--d:6s;--r:24s;--s:24px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:56%;--y:9%;--d:1s;--r:20s;--s:18px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:72%;--y:16%;--d:4s;--r:22s;--s:22px">₿</span>
+        <span class="float-item float-bear"  style="--x:88%;--y:8%;--d:7s;--r:26s;--s:26px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:14%;--y:32%;--d:2s;--r:18s;--s:20px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:32%;--y:38%;--d:5s;--r:24s;--s:18px">₿</span>
+        <span class="float-item float-bear"  style="--x:50%;--y:30%;--d:8s;--r:20s;--s:24px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:68%;--y:36%;--d:0s;--r:22s;--s:22px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:84%;--y:32%;--d:3s;--r:18s;--s:28px">₿</span>
+        <span class="float-item float-bear"  style="--x:8%;--y:52%;--d:6s;--r:24s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:28%;--y:58%;--d:9s;--r:20s;--s:26px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:46%;--y:50%;--d:2s;--r:22s;--s:20px">₿</span>
+        <span class="float-item float-bear"  style="--x:64%;--y:56%;--d:5s;--r:18s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:82%;--y:50%;--d:8s;--r:24s;--s:18px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:16%;--y:78%;--d:1s;--r:22s;--s:24px">₿</span>
+        <span class="float-item float-bear"  style="--x:36%;--y:84%;--d:4s;--r:18s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:54%;--y:78%;--d:7s;--r:22s;--s:20px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:76%;--y:82%;--d:0s;--r:26s;--s:26px">₿</span>
+        <span class="float-item float-bear"  style="--x:92%;--y:76%;--d:3s;--r:20s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+    </div>
+
     <header class="hero">
         <div class="hero-inner">
             <div class="hero-photo" id="hero-photo" hidden>
