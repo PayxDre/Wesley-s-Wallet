@@ -4,8 +4,7 @@
 //   - Blockstream:  wallet balance (when a real address is set)
 
 const CONFIG = {
-    // Replace with the real wallet address when ready.
-    walletAddress: null, // e.g. 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
+    walletAddress: 'bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293',
     birth: new Date('2025-04-20T00:00:00'),
     passing: new Date('2026-04-25T00:00:00'),
 };
@@ -149,7 +148,14 @@ async function loadWallet() {
         $('#btc-change').style.color = change >= 0 ? '#5e7a52' : '#a85a4a';
 
         if (CONFIG.walletAddress) {
-            $('#wallet-address').textContent = CONFIG.walletAddress;
+            const addrEl = $('#wallet-address');
+            addrEl.innerHTML = '';
+            const a = document.createElement('a');
+            a.href = `https://mempool.space/address/${CONFIG.walletAddress}`;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = CONFIG.walletAddress;
+            addrEl.appendChild(a);
             const sats = await fetchWalletBalance(CONFIG.walletAddress);
             $('#btc-balance').textContent = fmtBTC(sats);
             $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
