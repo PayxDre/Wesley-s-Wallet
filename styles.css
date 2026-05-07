@@ -95,17 +95,18 @@ a:hover {
 
 .lion-mark {
     display: block;
-    width: 200px;
+    width: 280px;
+    max-width: 80vw;
     height: auto;
     flex: 0 0 auto;
-    filter: drop-shadow(0 6px 18px rgba(45, 42, 38, 0.1));
+    filter: drop-shadow(0 8px 22px rgba(45, 42, 38, 0.1));
 }
 
 @media (max-width: 600px) {
     .lion-divider { padding: 48px 16px; gap: 18px; }
-    .lion-mark { width: 160px; }
+    .lion-mark { width: 220px; }
     .lion-divider::before,
-    .lion-divider::after { flex: 0 1 40px; }
+    .lion-divider::after { flex: 0 1 30px; }
 }
 
 .hero-photo {
