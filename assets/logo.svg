@@ -1,71 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" role="img" aria-label="Wesley's lion teddy leaning on a Bitcoin coin">
-  <!-- Soft ground shadow under both -->
-  <ellipse cx="150" cy="186" rx="135" ry="6" fill="#2d2a26" opacity="0.1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-label="Wesley's stuffed lion teddy leaning on a Bitcoin coin">
+  <!-- Soft ground shadow -->
+  <ellipse cx="160" cy="206" rx="145" ry="6" fill="#2d2a26" opacity="0.12"/>
 
   <!-- Bitcoin coin (right side) -->
   <g>
-    <circle cx="210" cy="115" r="68" fill="#f0d59c"/>
-    <circle cx="210" cy="115" r="64" fill="#f7e3b3" opacity="0.7"/>
-    <circle cx="210" cy="115" r="68" fill="none" stroke="#c98f3d" stroke-width="2" opacity="0.5"/>
-    <text x="210" y="138" text-anchor="middle"
+    <circle cx="232" cy="125" r="68" fill="#f0d59c"/>
+    <circle cx="232" cy="125" r="64" fill="#f7e3b3" opacity="0.7"/>
+    <circle cx="232" cy="125" r="68" fill="none" stroke="#c98f3d" stroke-width="2" opacity="0.5"/>
+    <text x="232" y="148" text-anchor="middle"
           font-family="Georgia, 'Times New Roman', serif"
           font-size="74" font-weight="700" fill="#b8852a">₿</text>
   </g>
 
-  <!-- Lion teddy (left side, tilted toward coin) -->
-  <g transform="rotate(9 100 130)">
-    <!-- Body / butt sitting on ground -->
-    <ellipse cx="100" cy="158" rx="40" ry="30" fill="#d9a55c"/>
-    <!-- Tummy lighter patch -->
-    <ellipse cx="100" cy="166" rx="22" ry="18" fill="#f5d8a8"/>
+  <!-- Lion teddy stuffed animal (tilted toward coin) -->
+  <g transform="rotate(8 110 140)">
 
-    <!-- Front paws extended in front -->
-    <ellipse cx="80" cy="180" rx="13" ry="8" fill="#d9a55c"/>
-    <ellipse cx="120" cy="180" rx="13" ry="8" fill="#d9a55c"/>
-    <ellipse cx="80" cy="182" rx="6" ry="4" fill="#f5d8a8"/>
-    <ellipse cx="120" cy="182" rx="6" ry="4" fill="#f5d8a8"/>
+    <!-- Tail: curves out from behind body to the left, with tufted tip -->
+    <path d="M 80 178 C 50 178 26 162 24 128"
+          stroke="#d9a55c" stroke-width="9" stroke-linecap="round" fill="none"/>
+    <g transform="translate(24 128)">
+      <circle cx="0" cy="0" r="11" fill="#c98f3d"/>
+      <circle cx="-5" cy="-5" r="7" fill="#b8852a"/>
+      <circle cx="5" cy="-3" r="6" fill="#b8852a"/>
+      <circle cx="0" cy="6" r="5" fill="#b8852a"/>
+    </g>
+
+    <!-- Back legs / feet sticking out at the bottom -->
+    <ellipse cx="84" cy="190" rx="17" ry="12" fill="#d9a55c"/>
+    <ellipse cx="130" cy="190" rx="17" ry="12" fill="#d9a55c"/>
+    <!-- Soft pink foot pads -->
+    <ellipse cx="84" cy="194" rx="9" ry="5" fill="#f0a87a"/>
+    <ellipse cx="130" cy="194" rx="9" ry="5" fill="#f0a87a"/>
+    <!-- Tiny toe beans -->
+    <circle cx="78" cy="190" r="2" fill="#e88a7a"/>
+    <circle cx="84" cy="188" r="2" fill="#e88a7a"/>
+    <circle cx="90" cy="190" r="2" fill="#e88a7a"/>
+    <circle cx="124" cy="190" r="2" fill="#e88a7a"/>
+    <circle cx="130" cy="188" r="2" fill="#e88a7a"/>
+    <circle cx="136" cy="190" r="2" fill="#e88a7a"/>
+
+    <!-- Body -->
+    <ellipse cx="107" cy="158" rx="44" ry="32" fill="#d9a55c"/>
+    <!-- Tummy patch (lighter) with stitch line down center -->
+    <ellipse cx="107" cy="166" rx="24" ry="20" fill="#f5d8a8"/>
+    <line x1="107" y1="148" x2="107" y2="184" stroke="#c98f3d" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.5"/>
+
+    <!-- Left arm: stubby, hanging at side -->
+    <ellipse cx="62" cy="148" rx="11" ry="20" fill="#d9a55c" transform="rotate(-14 62 148)"/>
+    <circle cx="55" cy="166" r="10" fill="#d9a55c"/>
+    <circle cx="55" cy="167" r="6" fill="#f0a87a"/>
+
+    <!-- Right arm: raised toward coin like reaching/hugging -->
+    <ellipse cx="155" cy="142" rx="11" ry="20" fill="#d9a55c" transform="rotate(48 155 142)"/>
+    <circle cx="172" cy="155" r="10" fill="#d9a55c"/>
+    <circle cx="172" cy="156" r="6" fill="#f0a87a"/>
 
     <!-- Mane fluff (back layer) -->
     <g fill="#c98f3d">
-      <circle cx="58" cy="85" r="14"/>
-      <circle cx="52" cy="118" r="14"/>
-      <circle cx="68" cy="50" r="14"/>
-      <circle cx="96" cy="38" r="14"/>
-      <circle cx="124" cy="46" r="14"/>
-      <circle cx="146" cy="72" r="14"/>
-      <circle cx="150" cy="105" r="14"/>
-      <circle cx="142" cy="135" r="14"/>
-      <circle cx="78" cy="142" r="14"/>
+      <circle cx="64" cy="84" r="14"/>
+      <circle cx="58" cy="114" r="14"/>
+      <circle cx="76" cy="50" r="14"/>
+      <circle cx="105" cy="38" r="14"/>
+      <circle cx="134" cy="46" r="14"/>
+      <circle cx="156" cy="72" r="14"/>
+      <circle cx="160" cy="105" r="14"/>
+      <circle cx="152" cy="135" r="14"/>
     </g>
 
     <!-- Main mane circle -->
-    <circle cx="100" cy="92" r="44" fill="#d9a55c"/>
+    <circle cx="110" cy="92" r="44" fill="#d9a55c"/>
 
     <!-- Face -->
-    <circle cx="100" cy="98" r="32" fill="#f5d8a8"/>
+    <circle cx="110" cy="98" r="32" fill="#f5d8a8"/>
 
     <!-- Ears -->
-    <ellipse cx="78" cy="74" rx="9" ry="11" fill="#c98f3d"/>
-    <ellipse cx="122" cy="74" rx="9" ry="11" fill="#c98f3d"/>
-    <ellipse cx="78" cy="76" rx="5" ry="7" fill="#f0a87a"/>
-    <ellipse cx="122" cy="76" rx="5" ry="7" fill="#f0a87a"/>
+    <ellipse cx="88" cy="74" rx="9" ry="11" fill="#c98f3d"/>
+    <ellipse cx="132" cy="74" rx="9" ry="11" fill="#c98f3d"/>
+    <ellipse cx="88" cy="76" rx="5" ry="7" fill="#f0a87a"/>
+    <ellipse cx="132" cy="76" rx="5" ry="7" fill="#f0a87a"/>
 
     <!-- Eyes -->
-    <ellipse cx="88" cy="96" rx="4.5" ry="6" fill="#2d2a26"/>
-    <ellipse cx="112" cy="96" rx="4.5" ry="6" fill="#2d2a26"/>
-    <circle cx="89.5" cy="94" r="1.5" fill="#fff"/>
-    <circle cx="113.5" cy="94" r="1.5" fill="#fff"/>
+    <ellipse cx="98" cy="96" rx="4.5" ry="6" fill="#2d2a26"/>
+    <ellipse cx="122" cy="96" rx="4.5" ry="6" fill="#2d2a26"/>
+    <circle cx="99.5" cy="94" r="1.5" fill="#fff"/>
+    <circle cx="123.5" cy="94" r="1.5" fill="#fff"/>
 
     <!-- Cheek blush -->
-    <ellipse cx="80" cy="113" rx="6" ry="3" fill="#e88a7a" opacity="0.45"/>
-    <ellipse cx="120" cy="113" rx="6" ry="3" fill="#e88a7a" opacity="0.45"/>
+    <ellipse cx="90" cy="113" rx="6" ry="3" fill="#e88a7a" opacity="0.45"/>
+    <ellipse cx="130" cy="113" rx="6" ry="3" fill="#e88a7a" opacity="0.45"/>
 
     <!-- Nose -->
-    <path d="M 93 112 Q 100 110 107 112 L 100 119 Z" fill="#2d2a26"/>
+    <path d="M 103 112 Q 110 110 117 112 L 110 119 Z" fill="#2d2a26"/>
 
     <!-- Smile -->
-    <path d="M 100 119 Q 95 124 89 122" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <path d="M 100 119 Q 105 124 111 122" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M 110 119 Q 105 124 99 122" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M 110 119 Q 115 124 121 122" stroke="#2d2a26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
   </g>
 </svg>
