@@ -191,9 +191,12 @@ function setAgeLine() {
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
 const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
-const GALLERY_CACHE_KEY = 'wesley-photos-v2';
+const GALLERY_CACHE_KEY = 'wesley-photos-v3';
 const GALLERY_CACHE_TTL = 10 * 60 * 1000;
 const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
+const VIDEO_RX = /\.(mp4|webm|ogg)$/i;
+const MEDIA_RX = /\.(jpe?g|png|webp|gif|mp4|webm|ogg)$/i;
+const POSTER_RX = /-poster\.(jpe?g|png|webp)$/i;
 const MAIN_RX = /^main\./i;
 
 async function loadGallery() {
@@ -207,7 +210,12 @@ async function loadGallery() {
         if (names.length) writePhotoCache(names);
     }
 
-    const mainName = names.find((n) => MAIN_RX.test(n));
+    // Posters live alongside videos; never display them as standalone tiles.
+    const allNames = names.slice();
+    const posters = new Set(allNames.filter((n) => POSTER_RX.test(n)));
+    names = allNames.filter((n) => !POSTER_RX.test(n));
+
+    const mainName = names.find((n) => MAIN_RX.test(n) && IMAGE_RX.test(n));
     if (mainName) {
         applyHeroPhoto(mainName);
         names = names.filter((n) => n !== mainName);
@@ -222,14 +230,34 @@ async function loadGallery() {
     names.forEach((name) => {
         const figure = document.createElement('figure');
         figure.className = 'photo';
-        const img = document.createElement('img');
-        img.src = `assets/photos/${encodeURIComponent(name)}`;
-        img.alt = 'Wesley';
-        img.loading = 'lazy';
-        img.addEventListener('error', () => figure.classList.add('is-missing'));
-        figure.appendChild(img);
+        let element;
+        if (VIDEO_RX.test(name)) {
+            figure.classList.add('photo--video');
+            element = document.createElement('video');
+            element.src = `assets/photos/${encodeURIComponent(name)}`;
+            element.controls = true;
+            element.preload = 'metadata';
+            element.playsInline = true;
+            const posterName = findPosterFor(name, posters);
+            if (posterName) element.poster = `assets/photos/${encodeURIComponent(posterName)}`;
+        } else {
+            element = document.createElement('img');
+            element.src = `assets/photos/${encodeURIComponent(name)}`;
+            element.alt = 'Wesley';
+            element.loading = 'lazy';
+        }
+        element.addEventListener('error', () => figure.classList.add('is-missing'));
+        figure.appendChild(element);
         grid.appendChild(figure);
     });
+}
+
+function findPosterFor(videoName, posters) {
+    const base = videoName.replace(VIDEO_RX, '');
+    for (const p of posters) {
+        if (p.toLowerCase().startsWith(base.toLowerCase() + '-poster.')) return p;
+    }
+    return null;
 }
 
 function applyHeroPhoto(name) {
@@ -256,7 +284,7 @@ async function fetchPhotoList() {
             const data = await res.json();
             if (!Array.isArray(data)) continue;
             const names = data
-                .filter((f) => f.type === 'file' && IMAGE_RX.test(f.name))
+                .filter((f) => f.type === 'file' && MEDIA_RX.test(f.name))
                 .map((f) => f.name);
             if (names.length) return names;
         } catch (e) {

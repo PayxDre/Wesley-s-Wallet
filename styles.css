@@ -402,10 +402,15 @@ a:hover {
     display: block;
 }
 
-.photo img {
+.photo img,
+.photo video {
     width: 100%;
     height: auto;
     display: block;
+}
+
+.photo--video {
+    background: #000;
 }
 
 .photo.is-missing {
