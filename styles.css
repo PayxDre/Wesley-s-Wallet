@@ -33,13 +33,17 @@ body {
 /* ---------- Intro animation (lion + balloon floats up on first load) ---------- */
 .intro-fly {
     position: fixed;
-    bottom: -420px;
+    bottom: -480px;
     left: 50%;
-    width: 200px;
-    margin-left: -100px;
+    width: 220px;
+    margin-left: -110px;
     pointer-events: none;
     z-index: 9999;
     animation: introFloatUp 8s ease-out 0.4s forwards;
+}
+
+@media (max-width: 600px) {
+    .intro-fly { width: 180px; margin-left: -90px; bottom: -400px; }
 }
 
 .intro-fly-inner {
@@ -47,15 +51,16 @@ body {
     transform-origin: center top;
 }
 
+.intro-fly img,
 .intro-fly svg {
     width: 100%;
     height: auto;
     display: block;
-    filter: drop-shadow(0 8px 22px rgba(45, 42, 38, 0.18));
+    filter: drop-shadow(0 10px 26px rgba(45, 42, 38, 0.2));
 }
 
 @keyframes introFloatUp {
-    0%   { bottom: -420px; opacity: 0; }
+    0%   { bottom: -480px; opacity: 0; }
     8%   { opacity: 1; }
     88%  { opacity: 1; }
     100% { bottom: 100vh; opacity: 0; }
