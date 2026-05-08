@@ -641,6 +641,44 @@ a:hover {
     padding: 48px 0;
 }
 
+/* ---------- Featured photo (framed, below the wall) ---------- */
+.featured-photo {
+    max-width: 720px;
+    margin: 80px auto 0;
+}
+
+.featured-photo-frame {
+    position: relative;
+    background: #fff;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow:
+        0 2px 4px rgba(45, 42, 38, 0.06),
+        0 24px 56px rgba(45, 42, 38, 0.18);
+}
+
+.featured-photo-frame::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--gold-soft);
+    pointer-events: none;
+    border-radius: 2px;
+}
+
+.featured-photo-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+    .featured-photo { margin-top: 56px; }
+    .featured-photo-frame { padding: 12px; }
+    .featured-photo-frame::before { inset: 6px; }
+}
+
 /* ---------- Story / Memories ---------- */
 .story-placeholder {
     text-align: center;

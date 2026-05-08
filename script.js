@@ -299,13 +299,14 @@ function setAgeLine() {
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
 const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
-const GALLERY_CACHE_KEY = 'wesley-photos-v5';
+const GALLERY_CACHE_KEY = 'wesley-photos-v6';
 const GALLERY_CACHE_TTL = 10 * 60 * 1000;
 const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
 const VIDEO_RX = /\.(mp4|webm|ogg)$/i;
 const MEDIA_RX = /\.(jpe?g|png|webp|gif|mp4|webm|ogg)$/i;
 const POSTER_RX = /-poster\.(jpe?g|png|webp)$/i;
 const MAIN_RX = /^main\./i;
+const FEATURED_RX = /^featured\./i;
 
 async function loadGallery() {
     const grid = document.getElementById('photo-grid');
@@ -327,6 +328,12 @@ async function loadGallery() {
     if (mainName) {
         applyHeroPhoto(mainName);
         names = names.filter((n) => n !== mainName);
+    }
+
+    const featuredName = names.find((n) => FEATURED_RX.test(n) && IMAGE_RX.test(n));
+    if (featuredName) {
+        applyFeaturedPhoto(featuredName);
+        names = names.filter((n) => n !== featuredName);
     }
 
     // Sort by a stable hash of the filename so consecutive shutter frames
@@ -389,6 +396,15 @@ function findPosterFor(videoName, posters) {
 function applyHeroPhoto(name) {
     const container = document.getElementById('hero-photo');
     const img = document.getElementById('hero-photo-img');
+    if (!container || !img) return;
+    img.addEventListener('load', () => { container.hidden = false; }, { once: true });
+    img.addEventListener('error', () => { container.hidden = true; }, { once: true });
+    img.src = `assets/photos/${encodeURIComponent(name)}`;
+}
+
+function applyFeaturedPhoto(name) {
+    const container = document.getElementById('featured-photo');
+    const img = document.getElementById('featured-photo-img');
     if (!container || !img) return;
     img.addEventListener('load', () => { container.hidden = false; }, { once: true });
     img.addEventListener('error', () => { container.hidden = true; }, { once: true });
