@@ -299,7 +299,7 @@ function setAgeLine() {
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
 const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
-const GALLERY_CACHE_KEY = 'wesley-photos-v4';
+const GALLERY_CACHE_KEY = 'wesley-photos-v5';
 const GALLERY_CACHE_TTL = 10 * 60 * 1000;
 const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
 const VIDEO_RX = /\.(mp4|webm|ogg)$/i;
@@ -328,6 +328,10 @@ async function loadGallery() {
         applyHeroPhoto(mainName);
         names = names.filter((n) => n !== mainName);
     }
+
+    // Sort by a stable hash of the filename so consecutive shutter frames
+    // (e.g. IMG_2560 and IMG_3580) don't end up next to each other.
+    names.sort((a, b) => stableHash(a) - stableHash(b));
 
     if (!names.length) {
         if (empty) empty.hidden = false;
@@ -363,6 +367,15 @@ async function loadGallery() {
         figure.appendChild(element);
         grid.appendChild(figure);
     });
+}
+
+function stableHash(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
 }
 
 function findPosterFor(videoName, posters) {
