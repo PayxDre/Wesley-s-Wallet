@@ -787,6 +787,21 @@ a:hover {
     line-height: 1.55;
 }
 
+/* Poem variant of the reading card */
+.reading-poem {
+    text-align: center;
+}
+
+.reading-poem p {
+    margin: 0 0 1.8em;
+    line-height: 1.75;
+}
+
+.reading-poem .refrain {
+    color: var(--gold);
+    font-style: italic;
+}
+
 @media (max-width: 600px) {
     .reading-content {
         padding: 36px 28px 32px;
