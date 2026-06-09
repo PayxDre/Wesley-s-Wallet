@@ -205,24 +205,30 @@ function renderChart(prices) {
     });
 }
 
-let cachedBalanceBTC = null;
-async function getBalanceBTC() {
-    if (cachedBalanceBTC !== null) return cachedBalanceBTC;
-    if (!CONFIG.walletAddress) return 0;
-    try {
-        const sats = await fetchWalletBalance(CONFIG.walletAddress);
-        cachedBalanceBTC = sats / 1e8;
-    } catch (e) {
-        cachedBalanceBTC = 0;
+let balancePromise = null;
+function getBalanceSats() {
+    if (!CONFIG.walletAddress) return Promise.resolve(0);
+    if (!balancePromise) {
+        balancePromise = fetchWalletBalance(CONFIG.walletAddress).catch((e) => {
+            console.warn('balance fetch failed:', e);
+            balancePromise = null;
+            return 0;
+        });
     }
-    return cachedBalanceBTC;
+    return balancePromise;
 }
 
 async function loadChart(days) {
     const note = $('#chart-note');
     note.textContent = 'Loading wallet history…';
+    // 'Lifetime' spans Wesley's whole life rather than all of Bitcoin's
+    // history; the wallet had no value before he was born.
+    if (days === 'lifetime') {
+        days = Math.ceil((Date.now() - CONFIG.birth.getTime()) / 86400000);
+    }
     try {
-        const [prices, btc] = await Promise.all([fetchPriceHistory(days), getBalanceBTC()]);
+        const [prices, sats] = await Promise.all([fetchPriceHistory(days), getBalanceSats()]);
+        const btc = sats / 1e8;
         if (btc <= 0) {
             note.textContent = 'Wallet is empty. Chart will fill in once funded.';
             if (chart) { chart.destroy(); chart = null; }
@@ -255,8 +261,7 @@ async function loadWallet() {
             a.rel = 'noopener';
             a.textContent = CONFIG.walletAddress;
             addrEl.appendChild(a);
-            const sats = await fetchWalletBalance(CONFIG.walletAddress);
-            cachedBalanceBTC = sats / 1e8;
+            const sats = await getBalanceSats();
             $('#btc-balance').textContent = fmtBTC(sats);
             $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
             loadGrowthMetrics(sats, price.usd);
@@ -275,7 +280,7 @@ function setupRangeButtons() {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.range-btn').forEach((b) => {
                 b.classList.remove('active');
-                b.removeAttribute('aria-selected');
+                b.setAttribute('aria-selected', 'false');
             });
             btn.classList.add('active');
             btn.setAttribute('aria-selected', 'true');
@@ -299,7 +304,8 @@ function setAgeLine() {
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
 const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
-const GALLERY_CACHE_KEY = 'wesley-photos-v6';
+let galleryBranch = GALLERY_BRANCHES[0];
+const GALLERY_CACHE_KEY = 'wesley-photos-v7';
 const GALLERY_CACHE_TTL = 10 * 60 * 1000;
 const IMAGE_RX = /\.(jpe?g|png|webp|gif)$/i;
 const VIDEO_RX = /\.(mp4|webm|ogg)$/i;
@@ -364,16 +370,43 @@ async function loadGallery() {
             element.preload = 'auto';
             const posterName = findPosterFor(name, posters);
             if (posterName) element.poster = `assets/photos/${encodeURIComponent(posterName)}`;
+            element.addEventListener('error', () => figure.classList.add('is-missing'));
         } else {
             element = document.createElement('img');
-            element.src = `assets/photos/${encodeURIComponent(name)}`;
             element.alt = 'Wesley';
             element.loading = 'lazy';
+            setImageWithFallback(element, name, 700, figure);
+            element.addEventListener('click', () => openLightbox(localPhotoURL(name)));
         }
-        element.addEventListener('error', () => figure.classList.add('is-missing'));
         figure.appendChild(element);
         grid.appendChild(figure);
     });
+}
+
+function localPhotoURL(name) {
+    return `assets/photos/${encodeURIComponent(name)}`;
+}
+
+// Originals straight off the phone run 2-4 MB each; with a wall of them the
+// page costs tens of megabytes. Serve gallery thumbnails through the free
+// wsrv.nl resizing proxy (reading from raw.githubusercontent.com), and fall
+// back to the local original if the proxy is ever unreachable.
+function thumbPhotoURL(name, width) {
+    const raw = `https://raw.githubusercontent.com/${GALLERY_REPO}/${galleryBranch}/${GALLERY_PATH}/${name}`;
+    return `https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=${width}&q=78&output=jpg`;
+}
+
+function setImageWithFallback(img, name, width, figure) {
+    let triedLocal = false;
+    img.addEventListener('error', () => {
+        if (!triedLocal) {
+            triedLocal = true;
+            img.src = localPhotoURL(name);
+        } else if (figure) {
+            figure.classList.add('is-missing');
+        }
+    });
+    img.src = thumbPhotoURL(name, width);
 }
 
 function stableHash(s) {
@@ -393,22 +426,29 @@ function findPosterFor(videoName, posters) {
     return null;
 }
 
-function applyHeroPhoto(name) {
-    const container = document.getElementById('hero-photo');
-    const img = document.getElementById('hero-photo-img');
+function applySpotlightPhoto(containerId, imgId, name, width) {
+    const container = document.getElementById(containerId);
+    const img = document.getElementById(imgId);
     if (!container || !img) return;
-    img.addEventListener('load', () => { container.hidden = false; }, { once: true });
-    img.addEventListener('error', () => { container.hidden = true; }, { once: true });
-    img.src = `assets/photos/${encodeURIComponent(name)}`;
+    let triedLocal = false;
+    img.addEventListener('load', () => { container.hidden = false; });
+    img.addEventListener('error', () => {
+        if (!triedLocal) {
+            triedLocal = true;
+            img.src = localPhotoURL(name);
+        } else {
+            container.hidden = true;
+        }
+    });
+    img.src = thumbPhotoURL(name, width);
+}
+
+function applyHeroPhoto(name) {
+    applySpotlightPhoto('hero-photo', 'hero-photo-img', name, 640);
 }
 
 function applyFeaturedPhoto(name) {
-    const container = document.getElementById('featured-photo');
-    const img = document.getElementById('featured-photo-img');
-    if (!container || !img) return;
-    img.addEventListener('load', () => { container.hidden = false; }, { once: true });
-    img.addEventListener('error', () => { container.hidden = true; }, { once: true });
-    img.src = `assets/photos/${encodeURIComponent(name)}`;
+    applySpotlightPhoto('featured-photo', 'featured-photo-img', name, 1400);
 }
 
 async function fetchPhotoList() {
@@ -422,7 +462,10 @@ async function fetchPhotoList() {
             const names = data
                 .filter((f) => f.type === 'file' && MEDIA_RX.test(f.name))
                 .map((f) => f.name);
-            if (names.length) return names;
+            if (names.length) {
+                galleryBranch = branch;
+                return names;
+            }
         } catch (e) {
             console.warn('photo list fetch failed for', branch, e);
         }
@@ -434,8 +477,9 @@ function readPhotoCache() {
     try {
         const raw = localStorage.getItem(GALLERY_CACHE_KEY);
         if (!raw) return null;
-        const { t, names } = JSON.parse(raw);
+        const { t, names, branch } = JSON.parse(raw);
         if (Date.now() - t > GALLERY_CACHE_TTL) return null;
+        if (branch) galleryBranch = branch;
         return Array.isArray(names) ? names : null;
     } catch {
         return null;
@@ -444,13 +488,16 @@ function readPhotoCache() {
 
 function writePhotoCache(names) {
     try {
-        localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify({ t: Date.now(), names }));
+        localStorage.setItem(
+            GALLERY_CACHE_KEY,
+            JSON.stringify({ t: Date.now(), names, branch: galleryBranch })
+        );
     } catch {}
 }
 
 function setFooterTime() {
     $('#footer-time').textContent =
-        'Last updated ' +
+        'Live prices as of ' +
         new Date().toLocaleString('en-US', {
             dateStyle: 'medium',
             timeStyle: 'short',
@@ -476,11 +523,61 @@ function cleanupIntroFly() {
     }, 9500);
 }
 
+function openLightbox(src) {
+    const box = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    if (!box || !img) return;
+    img.src = src;
+    box.hidden = false;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    const box = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    if (!box) return;
+    box.hidden = true;
+    if (img) img.src = '';
+    document.body.style.overflow = '';
+}
+
+function setupLightbox() {
+    const box = document.getElementById('lightbox');
+    if (!box) return;
+    box.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !box.hidden) closeLightbox();
+    });
+}
+
+function setupReveals() {
+    if (!window.matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+    if (!('IntersectionObserver' in window)) return;
+    const targets = document.querySelectorAll('main .section, .footer');
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { rootMargin: '0px 0px -8% 0px' }
+    );
+    targets.forEach((el) => {
+        el.classList.add('will-reveal');
+        observer.observe(el);
+    });
+}
+
 (async function init() {
     cleanupIntroFly();
     setAgeLine();
     setFooterTime();
     setupRangeButtons();
+    setupLightbox();
+    setupReveals();
     loadGallery();
     try {
         await loadChartAdapter();

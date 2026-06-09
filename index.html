@@ -329,13 +329,13 @@
                     <div class="chart-header">
                         <h3>Wallet value over time</h3>
                         <div class="chart-range" role="tablist" aria-label="Chart range">
-                            <button class="range-btn" data-days="30" role="tab">30D</button>
+                            <button class="range-btn" data-days="30" role="tab" aria-selected="false">30D</button>
                             <button class="range-btn active" data-days="365" role="tab" aria-selected="true">1Y</button>
-                            <button class="range-btn" data-days="max" role="tab">All</button>
+                            <button class="range-btn" data-days="lifetime" role="tab" aria-selected="false">Lifetime</button>
                         </div>
                     </div>
                     <div class="chart-canvas-wrap">
-                        <canvas id="price-chart" aria-label="Bitcoin price chart"></canvas>
+                        <canvas id="price-chart" aria-label="Wallet value over time chart"></canvas>
                     </div>
                     <p class="chart-note" id="chart-note">Loading price history…</p>
                 </div>
@@ -403,6 +403,11 @@
             <p class="small" id="footer-time"></p>
         </div>
     </footer>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Photo viewer" hidden>
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close photo">&times;</button>
+        <img id="lightbox-img" alt="Wesley" />
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>

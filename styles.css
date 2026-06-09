@@ -20,6 +20,12 @@ html, body {
     padding: 0;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 300;
@@ -923,4 +929,64 @@ a:hover {
 
 @media (prefers-reduced-motion: reduce) {
     .scroll-cue { animation: none; }
+}
+
+/* ---------- Lightbox (tap a photo to view it full size) ---------- */
+.photo img {
+    cursor: zoom-in;
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(30, 27, 23, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    cursor: zoom-out;
+}
+
+.lightbox[hidden] {
+    display: none;
+}
+
+.lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 6px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: 0;
+    color: #f3ede4;
+    font-size: 2.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 8px;
+    opacity: 0.8;
+}
+
+.lightbox-close:hover {
+    opacity: 1;
+}
+
+/* ---------- Gentle reveal on scroll ---------- */
+@media (prefers-reduced-motion: no-preference) {
+    .will-reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .will-reveal.revealed {
+        opacity: 1;
+        transform: none;
+    }
 }
