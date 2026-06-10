@@ -49,6 +49,92 @@ async function fetchWalletBalance(address) {
     return sats;
 }
 
+async function fetchAddressTxs(address) {
+    const res = await fetch(`https://blockstream.info/api/address/${address}/txs`);
+    if (!res.ok) throw new Error('tx fetch failed');
+    return res.json();
+}
+
+function netForAddress(tx, address) {
+    let received = 0;
+    let sent = 0;
+    (tx.vout || []).forEach((out) => {
+        if (out.scriptpubkey_address === address) received += out.value || 0;
+    });
+    (tx.vin || []).forEach((input) => {
+        const prev = input.prevout;
+        if (prev && prev.scriptpubkey_address === address) sent += prev.value || 0;
+    });
+    return received - sent;
+}
+
+const CONTRIB_CACHE_KEY = 'wesley-contributions-v1';
+const CONTRIB_CACHE_TTL = 5 * 60 * 1000;
+
+async function loadContributions(currentPrice) {
+    if (!CONFIG.walletAddress) return;
+    const container = document.getElementById('contributions');
+    const list = document.getElementById('contributions-list');
+    if (!container || !list) return;
+
+    let txs;
+    try {
+        const cached = JSON.parse(localStorage.getItem(CONTRIB_CACHE_KEY) || 'null');
+        if (cached && Date.now() - cached.t < CONTRIB_CACHE_TTL) {
+            txs = cached.txs;
+        }
+    } catch {}
+    if (!txs) {
+        try {
+            txs = await fetchAddressTxs(CONFIG.walletAddress);
+            try {
+                localStorage.setItem(CONTRIB_CACHE_KEY, JSON.stringify({ t: Date.now(), txs }));
+            } catch {}
+        } catch (e) {
+            console.warn('contributions fetch failed', e);
+            return;
+        }
+    }
+
+    const incoming = txs
+        .map((tx) => ({
+            txid: tx.txid,
+            net: netForAddress(tx, CONFIG.walletAddress),
+            confirmed: tx.status && tx.status.confirmed,
+            time: tx.status && tx.status.block_time ? tx.status.block_time * 1000 : null,
+        }))
+        .filter((c) => c.net > 0)
+        .sort((a, b) => (b.time || Date.now()) - (a.time || Date.now()))
+        .slice(0, 12);
+
+    if (!incoming.length) return;
+
+    list.innerHTML = '';
+    incoming.forEach((c) => {
+        const btc = c.net / 1e8;
+        const btcStr = btc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
+        const usdStr = currentPrice ? fmtUSD(btc * currentPrice) : '';
+        const dateStr = c.time
+            ? new Date(c.time).toLocaleDateString('en-US', {
+                  month: 'short', day: 'numeric', year: 'numeric',
+              })
+            : null;
+
+        const li = document.createElement('li');
+        li.className = 'contribution';
+        li.innerHTML = `
+            <span class="contribution-amount">+${btcStr} BTC${usdStr ? `<span class="contribution-usd">(${usdStr})</span>` : ''}</span>
+            <span class="contribution-meta">
+                ${dateStr ? `<span>${dateStr}</span>` : '<span class="contribution-pending">Pending</span>'}
+                <a class="contribution-link" href="https://mempool.space/tx/${c.txid}" target="_blank" rel="noopener">verify ↗</a>
+            </span>
+        `;
+        list.appendChild(li);
+    });
+
+    container.hidden = false;
+}
+
 async function fetchCurrentBlockHeight() {
     const res = await fetch('https://blockstream.info/api/blocks/tip/height');
     if (!res.ok) throw new Error('block height fetch failed');
@@ -265,6 +351,7 @@ async function loadWallet() {
             $('#btc-balance').textContent = fmtBTC(sats);
             $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
             loadGrowthMetrics(sats, price.usd);
+            loadContributions(price.usd);
         } else {
             loadGrowthMetrics(0, price.usd);
             $('#btc-balance').textContent = '… BTC';
