@@ -386,13 +386,58 @@
             </div>
         </section>
 
+        <section id="candle" class="section candle">
+            <div class="container narrow">
+                <h2 class="section-title">Light a Candle</h2>
+                <p class="section-lede">A small moment of remembrance.</p>
+                <div class="candle-stage">
+                    <button class="candle-btn" id="candle-btn" type="button" aria-label="Light a candle for Wesley">
+                        <svg viewBox="0 0 80 150" class="candle-svg" aria-hidden="true">
+                            <g class="candle-flame">
+                                <ellipse cx="40" cy="20" rx="9" ry="15" fill="#ffb84a"/>
+                                <ellipse cx="40" cy="20" rx="5.5" ry="11" fill="#ffd87a"/>
+                                <ellipse cx="40" cy="22" rx="2.5" ry="6" fill="#fff5d6"/>
+                            </g>
+                            <line x1="40" y1="38" x2="40" y2="50" stroke="#2d2a26" stroke-width="2.5" stroke-linecap="round"/>
+                            <rect x="28" y="50" width="24" height="82" rx="3" fill="#f0d59c"/>
+                            <rect x="29" y="50" width="6" height="82" fill="#fae5bc" opacity="0.6"/>
+                            <ellipse cx="40" cy="132" rx="22" ry="6" fill="#c98f3d"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="candle-status" id="candle-status">Tap the candle to light it in Wesley's memory.</p>
+            </div>
+        </section>
+
+        <section id="letters" class="section letters">
+            <div class="container narrow">
+                <h2 class="section-title">Letters for Later</h2>
+                <p class="section-lede">Sealed letters from family, to be opened on future milestones.</p>
+                <div class="letters-list" id="letters-list">
+                    <p class="letters-empty">Loading letters…</p>
+                </div>
+            </div>
+        </section>
+
         <section id="memories" class="section memories">
             <div class="container narrow">
                 <h2 class="section-title">A Memory Wall</h2>
-                <p class="section-lede">
-                    A place for family and friends to leave a memory or message.
-                    Coming soon.
-                </p>
+                <p class="section-lede">Share a memory of Wesley, a kind thought, or a message for his family.</p>
+                <div class="memory-list" id="memory-list"></div>
+                <form class="memory-form" id="memory-form" action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST">
+                    <label>
+                        <span>Your name</span>
+                        <input type="text" name="name" required maxlength="80" autocomplete="name" />
+                    </label>
+                    <label>
+                        <span>Your memory or message</span>
+                        <textarea name="memory" required maxlength="2000" rows="5"></textarea>
+                    </label>
+                    <input type="hidden" name="_subject" value="A new memory for Wesley" />
+                    <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Share</button>
+                    <p class="form-note">Messages are reviewed before they appear here.</p>
+                </form>
             </div>
         </section>
     </main>
@@ -400,7 +445,7 @@
     <footer class="footer">
         <div class="container">
             <p>For Wesley. Always loved, always remembered.</p>
-            <p class="small">Last updated May 8, 2026</p>
+            <p class="small">Last updated June 10, 2026</p>
             <p class="small" id="footer-time"></p>
         </div>
     </footer>

@@ -903,6 +903,329 @@ a:hover {
     }
 }
 
+/* ---------- Light a candle ---------- */
+.candle-stage {
+    display: flex;
+    justify-content: center;
+    margin: 48px 0 8px;
+    position: relative;
+}
+
+.candle-btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s ease;
+    border-radius: 6px;
+}
+
+.candle-btn:hover {
+    transform: translateY(-2px);
+}
+
+.candle-btn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 6px;
+}
+
+.candle-svg {
+    width: 110px;
+    height: 200px;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.candle-flame {
+    opacity: 0;
+    transform-origin: 40px 38px;
+    transform: scale(0.5);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.candle-btn.lit .candle-flame {
+    opacity: 1;
+    transform: scale(1);
+    animation: flameFlicker 2.6s ease-in-out infinite;
+}
+
+.candle-btn.lit::before {
+    content: "";
+    position: absolute;
+    inset: -60px -60px 40px;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 184, 74, 0.32), transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+    animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes flameFlicker {
+    0%, 100% { transform: scale(1) rotate(-1deg); }
+    25%      { transform: scale(1.05, 1.08) rotate(1.5deg); }
+    50%      { transform: scale(0.97, 0.98) rotate(-1deg); }
+    75%      { transform: scale(1.04, 1.05) rotate(2deg); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.9; }
+    50%      { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .candle-btn.lit .candle-flame,
+    .candle-btn.lit::before { animation: none; }
+}
+
+.candle-status {
+    text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1.15rem;
+    margin: 24px 0 0;
+}
+
+.candle-btn.lit ~ .candle-status,
+.candle-status.is-lit {
+    color: var(--gold);
+}
+
+/* ---------- Letters for Later ---------- */
+.letters-list {
+    display: grid;
+    gap: 18px;
+    margin-top: 36px;
+}
+
+.letter-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+.letter-card.locked {
+    background: var(--bg-soft);
+    text-align: center;
+    border-style: dashed;
+    border-color: var(--gold-soft);
+}
+
+.letter-meta {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin: 0 0 8px;
+}
+
+.letter-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.7rem;
+    color: var(--ink);
+    margin: 0 0 16px;
+    font-weight: 500;
+}
+
+.letter-seal {
+    font-size: 2.6rem;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 14px;
+}
+
+.letter-countdown {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.letter-countdown-small {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    margin: 4px 0 0;
+}
+
+.letter-body {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.18rem;
+    line-height: 1.75;
+    color: var(--ink);
+    white-space: pre-line;
+    margin: 0;
+}
+
+.letter-signature {
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 18px 0 0;
+    text-align: right;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.letters-empty {
+    text-align: center;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    padding: 40px 0;
+    margin: 0;
+}
+
+.letters-empty code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--bg-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* ---------- Memory Wall ---------- */
+.memory-list {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 56px;
+}
+
+.memory-list:empty {
+    display: none;
+}
+
+.memory-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+}
+
+.memory-author {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin: 0 0 10px;
+}
+
+.memory-body {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.12rem;
+    line-height: 1.7;
+    color: var(--ink);
+    margin: 0;
+}
+
+.memory-date {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    margin: 14px 0 0;
+}
+
+.memory-form {
+    background: #fff;
+    padding: 32px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 18px;
+}
+
+.memory-form label {
+    display: grid;
+    gap: 6px;
+}
+
+.memory-form label > span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+}
+
+.memory-form input,
+.memory-form textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--ink);
+    resize: vertical;
+    width: 100%;
+}
+
+.memory-form input:focus,
+.memory-form textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184, 146, 74, 0.15);
+}
+
+.memory-form button {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    padding: 14px 32px;
+    background: var(--gold);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    justify-self: center;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-weight: 500;
+}
+
+.memory-form button:hover:not(:disabled) {
+    background: var(--ink);
+}
+
+.memory-form button:active {
+    transform: scale(0.98);
+}
+
+.memory-form button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-note {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    margin: 0;
+    font-style: italic;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.form-pending,
+.form-success {
+    text-align: center;
+    color: var(--ink-soft);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    padding: 28px;
+    background: var(--bg-soft);
+    border-radius: var(--radius);
+    margin: 0;
+}
+
+.form-success {
+    color: var(--sage);
+}
+
 /* ---------- Footer ---------- */
 .footer {
     padding: 60px 0 80px;

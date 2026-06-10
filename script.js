@@ -523,6 +523,183 @@ function cleanupIntroFly() {
     }, 9500);
 }
 
+function escapeHTML(s) {
+    if (s == null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+const CANDLE_KEY = 'wesley-candle-lit';
+
+function setupCandle() {
+    const btn = document.getElementById('candle-btn');
+    const status = document.getElementById('candle-status');
+    if (!btn || !status) return;
+
+    if (localStorage.getItem(CANDLE_KEY)) {
+        btn.classList.add('lit');
+        status.classList.add('is-lit');
+        status.textContent = 'Your candle is lit for Wesley.';
+    }
+
+    btn.addEventListener('click', () => {
+        if (btn.classList.contains('lit')) return;
+        btn.classList.add('lit');
+        status.classList.add('is-lit');
+        status.textContent = 'Your candle is lit for Wesley.';
+        try { localStorage.setItem(CANDLE_KEY, new Date().toISOString()); } catch {}
+    });
+}
+
+async function loadLetters() {
+    const container = document.getElementById('letters-list');
+    if (!container) return;
+
+    let letters = [];
+    try {
+        const res = await fetch('assets/letters.json', { cache: 'no-cache' });
+        if (res.ok) letters = await res.json();
+    } catch (e) {
+        console.warn('letters fetch failed', e);
+    }
+
+    if (!Array.isArray(letters) || letters.length === 0) {
+        container.innerHTML =
+            '<p class="letters-empty">No letters have been sealed yet. ' +
+            'Family members can add letters to <code>assets/letters.json</code> with a ' +
+            'recipient, sender, title, body, and an unlock date.</p>';
+        return;
+    }
+
+    const now = Date.now();
+    letters.sort((a, b) => new Date(a.unlocksOn) - new Date(b.unlocksOn));
+
+    container.innerHTML = '';
+    letters.forEach((letter) => {
+        const unlocksAt = new Date(letter.unlocksOn).getTime();
+        const isUnlocked = !isNaN(unlocksAt) && now >= unlocksAt;
+        const card = document.createElement('article');
+        card.className = 'letter-card ' + (isUnlocked ? 'open' : 'locked');
+
+        const to = escapeHTML(letter.to || '');
+        const from = escapeHTML(letter.from || '');
+        const title = escapeHTML(letter.title || '');
+
+        if (isUnlocked) {
+            const body = escapeHTML(letter.body || '').replace(/\n/g, '<br />');
+            card.innerHTML = `
+                <p class="letter-meta">To ${to} · From ${from}</p>
+                <h3 class="letter-title">${title}</h3>
+                <p class="letter-body">${body}</p>
+                <p class="letter-signature">— ${from}</p>
+            `;
+        } else {
+            const daysToGo = Math.ceil((unlocksAt - now) / 86400000);
+            const dateStr = new Date(unlocksAt).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+            });
+            card.innerHTML = `
+                <div class="letter-seal" aria-hidden="true">✉</div>
+                <p class="letter-meta">To ${to} · From ${from}</p>
+                <h3 class="letter-title">${title}</h3>
+                <p class="letter-countdown">Opens ${dateStr}</p>
+                <p class="letter-countdown-small">${daysToGo.toLocaleString()} days from now</p>
+            `;
+        }
+
+        container.appendChild(card);
+    });
+}
+
+async function loadMemories() {
+    const container = document.getElementById('memory-list');
+    if (!container) return;
+
+    let memories = [];
+    try {
+        const res = await fetch('assets/memories.json', { cache: 'no-cache' });
+        if (res.ok) memories = await res.json();
+    } catch (e) {
+        console.warn('memories fetch failed', e);
+    }
+
+    if (!Array.isArray(memories) || memories.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    memories.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    container.innerHTML = '';
+    memories.forEach((m) => {
+        const card = document.createElement('article');
+        card.className = 'memory-card';
+        const dateStr = m.date
+            ? new Date(m.date).toLocaleDateString('en-US', {
+                  year: 'numeric', month: 'long', day: 'numeric',
+              })
+            : '';
+        const bodyHTML = escapeHTML(m.memory || '').replace(/\n/g, '<br />');
+        card.innerHTML = `
+            <p class="memory-author">${escapeHTML(m.name || '')}</p>
+            <p class="memory-body">${bodyHTML}</p>
+            ${dateStr ? `<p class="memory-date">${dateStr}</p>` : ''}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function setupMemoryForm() {
+    const form = document.getElementById('memory-form');
+    if (!form) return;
+
+    // If the Formspree action hasn't been set yet, swap the form for a
+    // gentle 'coming soon' note instead of letting submissions fail silently.
+    if (form.action.includes('YOUR_FORMSPREE_ID')) {
+        const placeholder = document.createElement('p');
+        placeholder.className = 'form-pending';
+        placeholder.textContent = 'The sharing form is coming online soon.';
+        form.replaceWith(placeholder);
+        return;
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const note = form.querySelector('.form-note');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending…';
+
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { Accept: 'application/json' },
+            });
+            if (res.ok) {
+                const success = document.createElement('p');
+                success.className = 'form-success';
+                success.textContent = 'Thank you. Your memory has been received and will appear here after a brief review.';
+                form.replaceWith(success);
+            } else {
+                throw new Error('submit failed');
+            }
+        } catch (err) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            if (note) {
+                note.textContent = 'Sorry, we could not send your message. Please try again in a moment.';
+                note.style.color = '#a85a4a';
+            }
+        }
+    });
+}
+
 function openLightbox(src) {
     const box = document.getElementById('lightbox');
     const img = document.getElementById('lightbox-img');
@@ -578,6 +755,10 @@ function setupReveals() {
     setupRangeButtons();
     setupLightbox();
     setupReveals();
+    setupCandle();
+    loadLetters();
+    loadMemories();
+    setupMemoryForm();
     loadGallery();
     try {
         await loadChartAdapter();
