@@ -534,11 +534,56 @@ function escapeHTML(s) {
 }
 
 const CANDLE_KEY = 'wesley-candle-lit';
+const CANDLE_COUNTER_BASE = 'https://abacus.jasoncameron.dev';
+const CANDLE_COUNTER_NS = 'wesleyswallet';
+const CANDLE_COUNTER_KEY = 'candles';
+
+async function fetchCandleCount() {
+    try {
+        const res = await fetch(
+            `${CANDLE_COUNTER_BASE}/get/${CANDLE_COUNTER_NS}/${CANDLE_COUNTER_KEY}`
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        return typeof data.value === 'number' ? data.value : null;
+    } catch (e) {
+        console.warn('candle count fetch failed', e);
+        return null;
+    }
+}
+
+async function incrementCandleCount() {
+    try {
+        const res = await fetch(
+            `${CANDLE_COUNTER_BASE}/hit/${CANDLE_COUNTER_NS}/${CANDLE_COUNTER_KEY}`
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        return typeof data.value === 'number' ? data.value : null;
+    } catch (e) {
+        console.warn('candle count increment failed', e);
+        return null;
+    }
+}
+
+function displayCandleCount(n) {
+    if (n == null) return;
+    const wrap = document.getElementById('candle-count');
+    const num = document.getElementById('candle-count-number');
+    const noun = document.getElementById('candle-count-noun');
+    if (!wrap || !num || !noun) return;
+    num.textContent = n.toLocaleString();
+    noun.textContent = n === 1 ? 'candle lit in his memory' : 'candles lit in his memory';
+    wrap.hidden = false;
+}
 
 function setupCandle() {
     const btn = document.getElementById('candle-btn');
     const status = document.getElementById('candle-status');
     if (!btn || !status) return;
+
+    // Load global count without incrementing.
+    fetchCandleCount().then(displayCandleCount);
 
     if (localStorage.getItem(CANDLE_KEY)) {
         btn.classList.add('lit');
@@ -546,12 +591,14 @@ function setupCandle() {
         status.textContent = 'Your candle is lit for Wesley.';
     }
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
         if (btn.classList.contains('lit')) return;
         btn.classList.add('lit');
         status.classList.add('is-lit');
         status.textContent = 'Your candle is lit for Wesley.';
         try { localStorage.setItem(CANDLE_KEY, new Date().toISOString()); } catch {}
+        const newCount = await incrementCandleCount();
+        if (newCount != null) displayCandleCount(newCount);
     });
 }
 
