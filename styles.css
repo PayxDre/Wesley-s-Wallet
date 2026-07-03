@@ -45,7 +45,10 @@ body {
     margin-left: -110px;
     pointer-events: none;
     z-index: 9999;
-    animation: introFloatUp 8s ease-out 0.4s forwards;
+}
+
+.intro-fly.fly {
+    animation: introFloatUp 8s ease-out 0.2s forwards;
 }
 
 @media (max-width: 600px) {

@@ -554,11 +554,24 @@ function loadChartAdapter() {
     });
 }
 
-function cleanupIntroFly() {
-    setTimeout(() => {
-        const el = document.getElementById('intro-fly');
-        if (el) el.remove();
-    }, 9500);
+// The balloon lion stays tucked below the viewport until the reader
+// reaches the wallet section, then floats up the screen once.
+function setupIntroFly() {
+    const el = document.getElementById('intro-fly');
+    const wallet = document.getElementById('wallet');
+    if (!el || !wallet || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                observer.disconnect();
+                el.classList.add('fly');
+                setTimeout(() => el.remove(), 9500);
+            });
+        },
+        { threshold: 0.25 }
+    );
+    observer.observe(wallet);
 }
 
 function escapeHTML(s) {
@@ -832,7 +845,7 @@ function setupReveals() {
 }
 
 (async function init() {
-    cleanupIntroFly();
+    setupIntroFly();
     setAgeLine();
     setFooterTime();
     setupRangeButtons();
