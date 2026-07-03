@@ -251,19 +251,8 @@ a:hover {
     margin: 0 0 18px;
 }
 
-.wallet-explainer {
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    line-height: 1.75;
-    color: var(--ink-soft);
-    max-width: 560px;
-    margin: 0 auto 56px;
-    text-align: center;
-}
-
 @media (max-width: 600px) {
     .brand-mark { font-size: 0.82rem; letter-spacing: 0.28em; margin-bottom: 28px; }
-    .wallet-explainer { font-size: 0.95rem; padding: 0 8px; }
 }
 
 .name {
@@ -354,22 +343,6 @@ a:hover {
     margin-bottom: 28px;
 }
 
-.wallet-rule {
-    text-align: center;
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-style: italic;
-    font-size: 1.1rem;
-    color: var(--ink-soft);
-    margin: 0 auto 64px;
-    max-width: 580px;
-    line-height: 1.6;
-}
-
-.wallet-rule strong {
-    color: var(--gold);
-    font-weight: 500;
-}
-
 .wallet-stat {
     background: #fff;
     padding: 32px 28px;
@@ -413,7 +386,7 @@ a:hover {
 /* ---------- Chart ---------- */
 .wallet-purpose {
     max-width: 680px;
-    margin: 0 auto 64px;
+    margin: 36px auto 64px;
     text-align: center;
     padding: 8px 8px 32px;
     position: relative;
@@ -435,6 +408,11 @@ a:hover {
     line-height: 1.75;
     color: var(--ink);
     margin: 0;
+}
+
+.wallet-purpose strong {
+    color: var(--gold);
+    font-weight: 500;
 }
 
 .growth-section {
@@ -1265,6 +1243,42 @@ a:hover {
     font-size: 0.8rem;
     color: var(--ink-soft);
     opacity: 0.7;
+}
+
+.footer .about-site {
+    max-width: 420px;
+    margin: 0 auto 18px;
+    line-height: 1.6;
+}
+
+.share-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: none;
+    border: 1px solid var(--gold-soft);
+    border-radius: 999px;
+    padding: 10px 26px;
+    margin: 10px 0 26px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.share-btn:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+}
+
+.featured-caption {
+    text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+    margin: 18px 0 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,6 +7,8 @@ const CONFIG = {
     // TEMPORARY test address. Swap in the real family wallet address
     // here once it's created and funded.
     walletAddress: 'bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293',
+    // Optional caption shown under the framed Featured photo.
+    featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
     passing: new Date('2026-04-25T00:00:00'),
     // Approximate Bitcoin block height at passing (April 25, 2026).
@@ -451,6 +453,40 @@ function applyHeroPhoto(name) {
 
 function applyFeaturedPhoto(name) {
     applySpotlightPhoto('featured-photo', 'featured-photo-img', name, 1400);
+    const caption = document.getElementById('featured-caption');
+    if (caption && CONFIG.featuredCaption) {
+        caption.textContent = CONFIG.featuredCaption;
+        caption.hidden = false;
+    }
+}
+
+function setupShareButton() {
+    const btn = document.getElementById('share-btn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        const url = window.location.origin + window.location.pathname;
+        const shareData = {
+            title: "Wesley's Website",
+            text: 'A place to remember Wesley.',
+            url,
+        };
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+            }
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            const original = btn.textContent;
+            btn.textContent = 'Link copied';
+            setTimeout(() => { btn.textContent = original; }, 2200);
+        } catch (e) {
+            console.warn('share failed', e);
+        }
+    });
 }
 
 async function fetchPhotoList() {
@@ -616,13 +652,11 @@ async function loadLetters() {
         console.warn('letters fetch failed', e);
     }
 
-    if (!Array.isArray(letters) || letters.length === 0) {
-        container.innerHTML =
-            '<p class="letters-empty">No letters have been sealed yet. ' +
-            'Family members can add letters to <code>assets/letters.json</code> with a ' +
-            'recipient, sender, title, body, and an unlock date.</p>';
-        return;
-    }
+    // Section stays hidden until at least one letter exists, so visitors
+    // never see an empty or technical placeholder.
+    if (!Array.isArray(letters) || letters.length === 0) return;
+    const section = document.getElementById('letters');
+    if (section) section.hidden = false;
 
     const now = Date.now();
     letters.sort((a, b) => new Date(a.unlocksOn) - new Date(b.unlocksOn));
@@ -805,6 +839,7 @@ function setupReveals() {
     setupLightbox();
     setupReveals();
     setupCandle();
+    setupShareButton();
     loadLetters();
     loadMemories();
     setupMemoryForm();

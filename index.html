@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wesley's Website | In Loving Memory</title>
     <meta name="description" content="A memorial for Wesley. April 20, 2025 to April 25, 2026." />
-    <link rel="icon" type="image/png" href="assets/logo.png" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
 
     <!-- Open Graph (iMessage, Facebook, LinkedIn, WhatsApp, Discord, etc.) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Wesley's Website" />
     <meta property="og:title" content="Wesley's Website | In Loving Memory" />
     <meta property="og:description" content="In loving memory of Wesley Robert Prisuta. A bitcoin wallet held in his name, to be passed to his siblings as a gift from their brother." />
-    <meta property="og:image" content="https://payxdre.github.io/Wesley-s-Wallet/assets/og-image.png" />
+    <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Wallet." />
-    <meta property="og:url" content="https://payxdre.github.io/Wesley-s-Wallet/" />
+    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/" />
 
     <!-- Twitter / X card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Wesley's Website | In Loving Memory" />
     <meta name="twitter:description" content="In loving memory of Wesley Robert Prisuta. A bitcoin wallet held in his name, for his siblings." />
-    <meta name="twitter:image" content="https://payxdre.github.io/Wesley-s-Wallet/assets/og-image.png" />
+    <meta name="twitter:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -31,7 +31,7 @@
 <body>
     <div class="intro-fly" id="intro-fly" aria-hidden="true">
         <div class="intro-fly-inner">
-            <img src="assets/lion-balloon.png" alt="" />
+            <img src="assets/lion-balloon.webp" alt="" />
         </div>
     </div>
 
@@ -92,7 +92,7 @@
     </header>
 
     <div class="lion-divider" aria-hidden="true">
-        <img src="assets/logo.png" alt="" class="lion-mark" />
+        <img src="assets/logo.webp" alt="" class="lion-mark" />
     </div>
 
     <main>
@@ -136,7 +136,7 @@
 
         <section id="gallery" class="section gallery">
             <div class="container">
-                <h2 class="section-title">Wesley</h2>
+                <h2 class="section-title">His Smile and His Starry Eyes</h2>
                 <div class="photo-grid" id="photo-grid"></div>
                 <p class="gallery-empty" id="gallery-empty" hidden>Photos coming soon.</p>
 
@@ -144,6 +144,7 @@
                     <div class="featured-photo-frame">
                         <img id="featured-photo-img" alt="Wesley" />
                     </div>
+                    <p class="featured-caption" id="featured-caption" hidden></p>
                 </div>
             </div>
         </section>
@@ -253,6 +254,33 @@
             </div>
         </section>
 
+        <section id="candle" class="section candle">
+            <div class="container narrow">
+                <h2 class="section-title">Light a Candle</h2>
+                <p class="section-lede">A small moment of remembrance.</p>
+                <div class="candle-stage">
+                    <button class="candle-btn" id="candle-btn" type="button" aria-label="Light a candle for Wesley">
+                        <svg viewBox="0 0 80 150" class="candle-svg" aria-hidden="true">
+                            <g class="candle-flame">
+                                <ellipse cx="40" cy="20" rx="9" ry="15" fill="#ffb84a"/>
+                                <ellipse cx="40" cy="20" rx="5.5" ry="11" fill="#ffd87a"/>
+                                <ellipse cx="40" cy="22" rx="2.5" ry="6" fill="#fff5d6"/>
+                            </g>
+                            <line x1="40" y1="38" x2="40" y2="50" stroke="#2d2a26" stroke-width="2.5" stroke-linecap="round"/>
+                            <rect x="28" y="50" width="24" height="82" rx="3" fill="#f0d59c"/>
+                            <rect x="29" y="50" width="6" height="82" fill="#fae5bc" opacity="0.6"/>
+                            <ellipse cx="40" cy="132" rx="22" ry="6" fill="#c98f3d"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="candle-status" id="candle-status">Tap the candle to light it in Wesley's memory.</p>
+                <p class="candle-count" id="candle-count" hidden>
+                    <span class="candle-count-number" id="candle-count-number">0</span>
+                    <span class="candle-count-noun" id="candle-count-noun">candles lit in his memory</span>
+                </p>
+            </div>
+        </section>
+
         <section id="wallet" class="section wallet">
             <div class="container">
                 <h2 class="section-title">Wesley's Wallet</h2>
@@ -261,13 +289,6 @@
                     in all of us, forever. As this wallet grows, it stands as a representation
                     of the love, curiosity, and joy within each of us, continuing on, always.
                 </p>
-                <p class="wallet-explainer">
-                    This site holds a bitcoin wallet in Wesley's name. For every day of
-                    his life, it contains 0.00003 BTC. The funds will be passed to his
-                    siblings, Vada, Riley, and Jimmy, when they are older. A gift from
-                    their brother.
-                </p>
-
                 <div class="wallet-card">
                     <div class="wallet-stat">
                         <span class="stat-label">Balance</span>
@@ -286,18 +307,14 @@
                     </div>
                 </div>
 
-                <p class="wallet-rule">
-                    For every day of Wesley's life, this wallet holds
-                    <strong>0.00003 BTC</strong>.
-                </p>
-
                 <div class="wallet-purpose">
                     <p>
-                        Everything this wallet grows into is being held for Vada, Riley, and Jimmy.
-                        When they are older, it will be theirs. A gift from their brother, so they
-                        can go where their hearts call, find what brings them joy, and feel the
-                        same love for the world that Wesley did. He loved being where his family
-                        was. This is one way he stays with them.
+                        For every day of Wesley's life, this wallet holds
+                        <strong>0.00003 BTC</strong>. Everything it grows into is being held
+                        for Vada, Riley, and Jimmy, to be theirs when they are older. A gift
+                        from their brother, so they can go where their hearts call, find what
+                        brings them joy, and feel the same love for the world that Wesley did.
+                        He loved being where his family was. This is one way he stays with them.
                     </p>
                 </div>
 
@@ -387,40 +404,11 @@
             </div>
         </section>
 
-        <section id="candle" class="section candle">
-            <div class="container narrow">
-                <h2 class="section-title">Light a Candle</h2>
-                <p class="section-lede">A small moment of remembrance.</p>
-                <div class="candle-stage">
-                    <button class="candle-btn" id="candle-btn" type="button" aria-label="Light a candle for Wesley">
-                        <svg viewBox="0 0 80 150" class="candle-svg" aria-hidden="true">
-                            <g class="candle-flame">
-                                <ellipse cx="40" cy="20" rx="9" ry="15" fill="#ffb84a"/>
-                                <ellipse cx="40" cy="20" rx="5.5" ry="11" fill="#ffd87a"/>
-                                <ellipse cx="40" cy="22" rx="2.5" ry="6" fill="#fff5d6"/>
-                            </g>
-                            <line x1="40" y1="38" x2="40" y2="50" stroke="#2d2a26" stroke-width="2.5" stroke-linecap="round"/>
-                            <rect x="28" y="50" width="24" height="82" rx="3" fill="#f0d59c"/>
-                            <rect x="29" y="50" width="6" height="82" fill="#fae5bc" opacity="0.6"/>
-                            <ellipse cx="40" cy="132" rx="22" ry="6" fill="#c98f3d"/>
-                        </svg>
-                    </button>
-                </div>
-                <p class="candle-status" id="candle-status">Tap the candle to light it in Wesley's memory.</p>
-                <p class="candle-count" id="candle-count" hidden>
-                    <span class="candle-count-number" id="candle-count-number">0</span>
-                    <span class="candle-count-noun" id="candle-count-noun">candles lit in his memory</span>
-                </p>
-            </div>
-        </section>
-
-        <section id="letters" class="section letters">
+        <section id="letters" class="section letters" hidden>
             <div class="container narrow">
                 <h2 class="section-title">Letters for Later</h2>
                 <p class="section-lede">Sealed letters from family, to be opened on future milestones.</p>
-                <div class="letters-list" id="letters-list">
-                    <p class="letters-empty">Loading letters…</p>
-                </div>
+                <div class="letters-list" id="letters-list"></div>
             </div>
         </section>
 
@@ -450,7 +438,12 @@
     <footer class="footer">
         <div class="container">
             <p>For Wesley. Always loved, always remembered.</p>
-            <p class="small">Last updated June 13, 2026</p>
+            <button type="button" class="share-btn" id="share-btn">Share this site</button>
+            <p class="small about-site">
+                This site is kept by Wesley's family, and will be cared for until
+                Vada, Riley, and Jimmy are grown.
+            </p>
+            <p class="small">Last updated July 3, 2026</p>
             <p class="small" id="footer-time"></p>
         </div>
     </footer>
