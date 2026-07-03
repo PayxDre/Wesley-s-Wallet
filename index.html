@@ -3,102 +3,434 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wesley's Wallet — In Loving Memory</title>
-    <meta name="description" content="A memorial for Wesley. April 20, 2025 — April 25, 2026." />
+    <title>Wesley's Website | In Loving Memory</title>
+    <meta name="description" content="A memorial for Wesley. April 20, 2025 to April 25, 2026." />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+
+    <!-- Open Graph (iMessage, Facebook, LinkedIn, WhatsApp, Discord, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wesley's Website" />
+    <meta property="og:title" content="Wesley's Website | In Loving Memory" />
+    <meta property="og:description" content="In loving memory of Wesley Robert Prisuta. A bitcoin wallet held in his name, to be passed to his siblings as a gift from their brother." />
+    <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/" />
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wesley's Website | In Loving Memory" />
+    <meta name="twitter:description" content="In loving memory of Wesley Robert Prisuta. A bitcoin wallet held in his name, for his siblings." />
+    <meta name="twitter:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+    <div class="intro-fly" id="intro-fly" aria-hidden="true">
+        <div class="intro-fly-inner">
+            <img src="assets/lion-balloon.webp" alt="" />
+        </div>
+    </div>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="ic-heart" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </symbol>
+            <symbol id="ic-bear" viewBox="0 0 24 24">
+                <circle cx="12" cy="13" r="8"/>
+                <circle cx="5.5" cy="6" r="3"/>
+                <circle cx="18.5" cy="6" r="3"/>
+                <circle cx="9" cy="12" r="1" fill="#fff"/>
+                <circle cx="15" cy="12" r="1" fill="#fff"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="floating-bg" aria-hidden="true">
+        <span class="float-item float-heart" style="--x:6%;--y:12%;--d:0s;--r:22s;--s:22px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:22%;--y:6%;--d:3s;--r:18s;--s:26px">₿</span>
+        <span class="float-item float-bear"  style="--x:38%;--y:14%;--d:6s;--r:24s;--s:24px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:56%;--y:9%;--d:1s;--r:20s;--s:18px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:72%;--y:16%;--d:4s;--r:22s;--s:22px">₿</span>
+        <span class="float-item float-bear"  style="--x:88%;--y:8%;--d:7s;--r:26s;--s:26px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:14%;--y:32%;--d:2s;--r:18s;--s:20px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:32%;--y:38%;--d:5s;--r:24s;--s:18px">₿</span>
+        <span class="float-item float-bear"  style="--x:50%;--y:30%;--d:8s;--r:20s;--s:24px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:68%;--y:36%;--d:0s;--r:22s;--s:22px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:84%;--y:32%;--d:3s;--r:18s;--s:28px">₿</span>
+        <span class="float-item float-bear"  style="--x:8%;--y:52%;--d:6s;--r:24s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:28%;--y:58%;--d:9s;--r:20s;--s:26px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:46%;--y:50%;--d:2s;--r:22s;--s:20px">₿</span>
+        <span class="float-item float-bear"  style="--x:64%;--y:56%;--d:5s;--r:18s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:82%;--y:50%;--d:8s;--r:24s;--s:18px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:16%;--y:78%;--d:1s;--r:22s;--s:24px">₿</span>
+        <span class="float-item float-bear"  style="--x:36%;--y:84%;--d:4s;--r:18s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+        <span class="float-item float-heart" style="--x:54%;--y:78%;--d:7s;--r:22s;--s:20px"><svg><use href="#ic-heart"/></svg></span>
+        <span class="float-item float-btc"   style="--x:76%;--y:82%;--d:0s;--r:26s;--s:26px">₿</span>
+        <span class="float-item float-bear"  style="--x:92%;--y:76%;--d:3s;--r:20s;--s:22px"><svg><use href="#ic-bear"/></svg></span>
+    </div>
+
     <header class="hero">
         <div class="hero-inner">
+            <div class="hero-photo" id="hero-photo" hidden>
+                <img id="hero-photo-img" alt="Wesley" />
+            </div>
+            <p class="brand-mark">Wesley's Website</p>
             <p class="eyebrow">In loving memory of</p>
             <h1 class="name">Wesley</h1>
             <p class="dates">
                 <time datetime="2025-04-20">April 20, 2025</time>
-                <span class="dash">—</span>
+                <span class="dash">·</span>
                 <time datetime="2026-04-25">April 25, 2026</time>
             </p>
-            <p class="age" id="age-line">One year and five days of light.</p>
-            <a href="#wallet" class="scroll-cue" aria-label="Scroll to wallet">↓</a>
+            <a href="#story" class="scroll-cue" aria-label="Scroll down">↓</a>
         </div>
     </header>
 
+    <div class="lion-divider" aria-hidden="true">
+        <img src="assets/logo.webp" alt="" class="lion-mark" />
+    </div>
+
     <main>
-        <section id="wallet" class="section wallet">
-            <div class="container">
-                <h2 class="section-title">Wesley's Wallet</h2>
-                <p class="section-lede">
-                    A small amount of bitcoin, held in his name. It will grow, fall, and grow again —
-                    a quiet record of time passing, set aside in his memory.
-                </p>
-
-                <div class="wallet-card">
-                    <div class="wallet-stat">
-                        <span class="stat-label">Balance</span>
-                        <span class="stat-value" id="btc-balance">— BTC</span>
-                        <span class="stat-sub" id="usd-value">$—</span>
-                    </div>
-                    <div class="wallet-stat">
-                        <span class="stat-label">Bitcoin price</span>
-                        <span class="stat-value" id="btc-price">$—</span>
-                        <span class="stat-sub" id="btc-change">—</span>
-                    </div>
-                    <div class="wallet-stat">
-                        <span class="stat-label">Wallet address</span>
-                        <span class="stat-value mono" id="wallet-address">bc1q… (placeholder)</span>
-                        <span class="stat-sub">Read-only. Contributions welcome.</span>
-                    </div>
-                </div>
-
-                <div class="chart-wrap">
-                    <div class="chart-header">
-                        <h3>Bitcoin value over time</h3>
-                        <div class="chart-range" role="tablist" aria-label="Chart range">
-                            <button class="range-btn" data-days="30" role="tab">30D</button>
-                            <button class="range-btn active" data-days="365" role="tab" aria-selected="true">1Y</button>
-                            <button class="range-btn" data-days="max" role="tab">All</button>
-                        </div>
-                    </div>
-                    <canvas id="price-chart" height="120" aria-label="Bitcoin price chart"></canvas>
-                    <p class="chart-note" id="chart-note">Loading price history…</p>
+        <section id="story" class="section story">
+            <div class="container narrow">
+                <h2 class="section-title">His Story</h2>
+                <p class="section-lede">A short telling, in the words of his family.</p>
+                <div class="story-content">
+                    <p>
+                        Wesley arrived on April 20, 2025, alongside his twin brother Jimmy, two
+                        small heartbeats beginning together at the heart of the Prisuta family.
+                        From the moment he opened his eyes, he was looking for the people he
+                        loved. He found Meghan and Matt, his sisters Vada and Riley, and Jimmy
+                        at his side, and he settled into the middle of all of them like he had
+                        been waiting his whole life to be there.
+                    </p>
+                    <p>
+                        He met the world with wide, curious eyes and a smile that came easily.
+                        Anyone fortunate enough to spend time with Wesley felt it right away,
+                        a wonder for everything around him and an ambition to be part of it.
+                        He wanted to play. He wanted to reach for whatever his siblings were
+                        reaching for. He wanted to be where the noise was, where the laughter
+                        was, where the love was.
+                    </p>
+                    <p>
+                        He was a son to two parents who adored him, a little brother to two big
+                        sisters who watched over him, and a forever twin to Jimmy, the brother
+                        who was there from the very first moment. The bond between them was its
+                        own kind of language, the kind of closeness that does not need to be
+                        explained.
+                    </p>
+                    <p>
+                        Wesley passed on April 25, 2026, just five days after his first birthday.
+                        One year and five days. A short time by some measures, and an entire life
+                        of love by every other. He was here. He was deeply loved. And he made
+                        everyone who knew him better for having known him.
+                    </p>
                 </div>
             </div>
         </section>
 
         <section id="gallery" class="section gallery">
             <div class="container">
-                <h2 class="section-title">Wesley</h2>
-                <p class="section-lede">Photos coming soon.</p>
-                <div class="photo-grid" id="photo-grid">
-                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
-                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
-                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
-                    <div class="photo placeholder"><span>A photo of Wesley</span></div>
+                <h2 class="section-title">His Smile and His Starry Eyes</h2>
+                <div class="photo-grid" id="photo-grid"></div>
+                <p class="gallery-empty" id="gallery-empty" hidden>Photos coming soon.</p>
+
+                <div class="featured-photo" id="featured-photo" hidden>
+                    <div class="featured-photo-frame">
+                        <img id="featured-photo-img" alt="Wesley" />
+                    </div>
+                    <p class="featured-caption" id="featured-caption" hidden></p>
                 </div>
             </div>
         </section>
 
-        <section id="story" class="section story">
+        <section id="eulogy" class="section eulogy">
             <div class="container narrow">
-                <h2 class="section-title">His Story</h2>
-                <p class="section-lede">
-                    Words for Wesley will live here — written by the people who loved him.
-                </p>
-                <div class="story-placeholder">
-                    <p>Coming soon.</p>
+                <h2 class="section-title">From Uncle Andrew</h2>
+                <p class="section-lede">A eulogy for Wesley.</p>
+                <article class="eulogy-content">
+                    <p class="eulogy-opener">Wesley</p>
+
+                    <p>For those who don't know me, my name is Andrew. I'm Meghan's brother, and I have the privilege of being Wesley's Uncle.</p>
+
+                    <p>I stand here today as a twin to say that I understand the special bond only a twin can know. I can't imagine losing someone who was there from the very beginning, someone walking through life right beside you, at the exact same stage.</p>
+
+                    <p>I know Jimmy may not be able to fully understand it right now, but as he grows he will slowly come to grasp what happened with his twin brother. He will have to process those feelings when he's ready. What feels like a void in the physical space, the empty place where we once held him, will in time sit alongside a fullness in the heart, mind, and soul. Jimmy, Wesley lives within you, sharing your journey just as you did together from the moment you were born until his passing.</p>
+
+                    <p>I also stand here as a sibling. Siblings are another powerful force in my life. Being a brother has brought me immense joy and pride. Vada, Riley, and Jimmy know the comfort of waking up and always having a playmate, a companion, someone to challenge them. And I don't mean challenging each other in fights or battles, though those surely happen, but rather someone to push you to grow, to compete with, and to become a better version of yourself.</p>
+
+                    <p>As they grow older, I believe Wesley will continue to be that challenger for Vada, Riley, and especially Jimmy. A quiet support system. An internal voice forever within them, never letting them give up and never leaving them without love.</p>
+
+                    <p>Lastly, I stand here as a parent. I am the father of two young boys, one who is three years older than Wesley and the other who is nine months older. Although one of my sons has been on this earth a little longer than the other, the love and attachment I feel for both is exactly the same. To Meg and Matt, I can't imagine what you've walked through this past year. As a parent myself, I only know how deep that love goes, and I know yours for Wesley was bottomless. You two are the most loving parents any children could ever have. As soon as I walk into your house, the feeling of family and love is palpable. Wesley was so deeply loved, and so deeply held, every single day he was here. No child could have been more cherished. And while none of us wanted to let him go, I take comfort knowing Wesley isn't alone where he is. He's with Miles and all the loved ones who went before us. Our family on the other side is holding him now, the same way we held him here.</p>
+
+                    <p class="eulogy-shift">To Wesley,</p>
+
+                    <p>I've been on this earth for 35 years, and I haven't endured anything close to what you did in one. Yet you fought through major heart surgery and this brutal battle this past month, all while greeting me with that smile every single time I saw you. Everyone keeps saying the same thing about that smile: it was unique, and it could make time slow down. They're right. It has been the honor of my life to have known you, to have witnessed your curiosity about life, your happiness, and your quiet strength. You now live on in each of us, making us stronger every single day. I thank you, and I love you, nephew.</p>
+
+                    <p class="eulogy-signoff">Love,<br />Uncle Andrew</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="glitter" class="section glitter">
+            <div class="container narrow">
+                <h2 class="section-title">Grief Is Like Glitter</h2>
+                <p class="section-lede">Read at Wesley's service by his grandmothers, Pinky McGreevy and Sue Prisuta.</p>
+                <article class="reading-content">
+                    <p>Grief is like glitter. In the beginning. It's everywhere, on your hands, in your hair, scattered across every corner of your life. You try to clean it up, to restore some sense of order, and for a while, it seems like you've succeeded.</p>
+
+                    <p>But then, one day, you move a sofa or open a forgotten drawer, and there it is again - a tiny sparkle that catches the light and reminds you of what you lost.</p>
+
+                    <p>It doesn't go away completely. It settles, becomes quieter, less overwhelming. You learn to live with it, to carry it gently. And years later, when you find a bit of that glitter tucked behind a shelf, you might smile, maybe even laugh .. because it reminds you of love, of connection, of someone who mattered deeply.</p>
+
+                    <p>Eventually something will catch your eye - a photo, a favorite song, a familiar scent, and instead of pain, you'll feel warmth. That's the quiet truth about grief. It stays with you, but it changes. It becomes a part of our story, a soft echo of the love that never really left.</p>
+
+                    <p class="reading-signoff">We love you and miss you, our little angel<br />Wesley Robert Prisuta</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="happy" class="section happy">
+            <div class="container narrow">
+                <h2 class="section-title">Happy To Be Here</h2>
+                <p class="section-lede">A poem from Wesley's grandmother, Pinky McGreevy.</p>
+                <article class="reading-content reading-poem">
+                    <p>
+                        A loving family home awaits<br />
+                        The arrival of their boys<br />
+                        What would life ahead look like<br />
+                        Beyond the books and toys
+                    </p>
+
+                    <p>
+                        Children bring us laughter<br />
+                        kisses, hugs and love<br />
+                        Sometimes a child's life<br />
+                        Brings a message from above
+                    </p>
+
+                    <p>
+                        His smile and his starry eyes<br />
+                        A dimple sweet and dear<br />
+                        Words unspoken, we hear him say<br />
+                        <span class="refrain">"I'm just happy to be here"</span>
+                    </p>
+
+                    <p>
+                        This lion-hearted warrior<br />
+                        With courage beyond compare<br />
+                        Led all of us to faith and trust<br />
+                        That he was in God's care
+                    </p>
+
+                    <p>
+                        His praying hands, small yet strong<br />
+                        Like a loving message clear<br />
+                        Although our time may not be long<br />
+                        <span class="refrain">"I'm just happy to be here"</span>
+                    </p>
+
+                    <p>
+                        Forever in our hearts he'll be<br />
+                        As we go from day to day<br />
+                        And if we listen closely<br />
+                        We can hear our angel say
+                    </p>
+
+                    <p>
+                        My life is now in heaven<br />
+                        No need to shed a tear<br />
+                        Although I loved my time on earth<br />
+                        <span class="refrain">"I'm happy to be here"</span>
+                    </p>
+
+                    <p class="reading-signoff">We love you, Wesley Robert Prisuta</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="candle" class="section candle">
+            <div class="container narrow">
+                <h2 class="section-title">Light a Candle</h2>
+                <p class="section-lede">A small moment of remembrance.</p>
+                <div class="candle-stage">
+                    <button class="candle-btn" id="candle-btn" type="button" aria-label="Light a candle for Wesley">
+                        <svg viewBox="0 0 80 150" class="candle-svg" aria-hidden="true">
+                            <g class="candle-flame">
+                                <ellipse cx="40" cy="20" rx="9" ry="15" fill="#ffb84a"/>
+                                <ellipse cx="40" cy="20" rx="5.5" ry="11" fill="#ffd87a"/>
+                                <ellipse cx="40" cy="22" rx="2.5" ry="6" fill="#fff5d6"/>
+                            </g>
+                            <line x1="40" y1="38" x2="40" y2="50" stroke="#2d2a26" stroke-width="2.5" stroke-linecap="round"/>
+                            <rect x="28" y="50" width="24" height="82" rx="3" fill="#f0d59c"/>
+                            <rect x="29" y="50" width="6" height="82" fill="#fae5bc" opacity="0.6"/>
+                            <ellipse cx="40" cy="132" rx="22" ry="6" fill="#c98f3d"/>
+                        </svg>
+                    </button>
                 </div>
+                <p class="candle-status" id="candle-status">Tap the candle to light it in Wesley's memory.</p>
+                <p class="candle-count" id="candle-count" hidden>
+                    <span class="candle-count-number" id="candle-count-number">0</span>
+                    <span class="candle-count-noun" id="candle-count-noun">candles lit in his memory</span>
+                </p>
+            </div>
+        </section>
+
+        <section id="wallet" class="section wallet">
+            <div class="container">
+                <h2 class="section-title">Wesley's Wallet</h2>
+                <p class="section-lede dedication">
+                    Though Wesley is no longer with us, his love and joy will continue to live
+                    in all of us, forever. As this wallet grows, it stands as a representation
+                    of the love, curiosity, and joy within each of us, continuing on, always.
+                </p>
+                <div class="wallet-card">
+                    <div class="wallet-stat">
+                        <span class="stat-label">Balance</span>
+                        <span class="stat-value" id="btc-balance">… BTC</span>
+                        <span class="stat-sub" id="usd-value">$…</span>
+                    </div>
+                    <div class="wallet-stat">
+                        <span class="stat-label">Bitcoin price</span>
+                        <span class="stat-value" id="btc-price">$…</span>
+                        <span class="stat-sub" id="btc-change">…</span>
+                    </div>
+                    <div class="wallet-stat">
+                        <span class="stat-label">Wallet address</span>
+                        <span class="stat-value mono" id="wallet-address">bc1q… (placeholder)</span>
+                        <span class="stat-sub">Verifiable on the blockchain.</span>
+                    </div>
+                </div>
+
+                <div class="wallet-purpose">
+                    <p>
+                        For every day of Wesley's life, this wallet holds
+                        <strong>0.00003 BTC</strong>. Everything it grows into is being held
+                        for Vada, Riley, and Jimmy, to be theirs when they are older. A gift
+                        from their brother, so they can go where their hearts call, find what
+                        brings them joy, and feel the same love for the world that Wesley did.
+                        He loved being where his family was. This is one way he stays with them.
+                    </p>
+                </div>
+
+                <div class="growth-section">
+                    <h3 class="growth-heading">Since he passed</h3>
+                    <div class="growth-grid">
+                        <div class="growth-stat">
+                            <span class="growth-label">Days</span>
+                            <span class="growth-value" id="growth-days">…</span>
+                        </div>
+                        <div class="growth-stat">
+                            <span class="growth-label">Bitcoin blocks</span>
+                            <span class="growth-value" id="growth-blocks">…</span>
+                        </div>
+                        <div class="growth-stat">
+                            <span class="growth-label">BTC price</span>
+                            <span class="growth-value" id="growth-price">…</span>
+                            <span class="growth-sub" id="growth-price-sub"></span>
+                        </div>
+                        <div class="growth-stat">
+                            <span class="growth-label">Wallet growth</span>
+                            <span class="growth-value" id="growth-value">…</span>
+                            <span class="growth-sub" id="growth-value-sub"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-wrap">
+                    <div class="chart-header">
+                        <h3>Wallet value over time</h3>
+                        <div class="chart-range" role="tablist" aria-label="Chart range">
+                            <button class="range-btn" data-days="30" role="tab" aria-selected="false">30D</button>
+                            <button class="range-btn active" data-days="365" role="tab" aria-selected="true">1Y</button>
+                            <button class="range-btn" data-days="lifetime" role="tab" aria-selected="false">Lifetime</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="price-chart" aria-label="Wallet value over time chart"></canvas>
+                    </div>
+                    <p class="chart-note" id="chart-note">Loading price history…</p>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="declaration" class="section declaration">
+            <div class="container narrow">
+                <h2 class="section-title">A Declaration on the Blockchain</h2>
+                <p class="section-lede">
+                    Inscribed permanently on the Bitcoin blockchain, in Wesley's memory.
+                </p>
+
+                <div class="declaration-card">
+                    <p class="declaration-text">
+                        Wesley Robert Prisuta (04/20/25 - 04/25/26) beacon of light, cherished by all
+                    </p>
+
+                    <div class="declaration-meta">
+                        <div class="meta-row">
+                            <span class="meta-label">Block</span>
+                            <span class="meta-value">#947,318</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Inscribed</span>
+                            <span class="meta-value">April 30, 2026 UTC</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Network</span>
+                            <span class="meta-value">Bitcoin</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Transaction</span>
+                            <a class="meta-value mono"
+                               href="https://4evr.ink/tx/3c7911a4ceb1a612197e00917ee3c69c3f1b850fd668184e9d9487ac56c7207b"
+                               target="_blank" rel="noopener">
+                                3c7911a4ceb1a612197e00917ee3c69c3f1b850fd668184e9d9487ac56c7207b
+                            </a>
+                        </div>
+                    </div>
+
+                    <p class="declaration-note">
+                        Once written on the Bitcoin blockchain, a declaration cannot be erased,
+                        edited, or taken down. Wesley's name will live on the Bitcoin blockchain
+                        forever.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="letters" class="section letters" hidden>
+            <div class="container narrow">
+                <h2 class="section-title">Letters for Later</h2>
+                <p class="section-lede">Sealed letters from family, to be opened on future milestones.</p>
+                <div class="letters-list" id="letters-list"></div>
             </div>
         </section>
 
         <section id="memories" class="section memories">
             <div class="container narrow">
                 <h2 class="section-title">A Memory Wall</h2>
-                <p class="section-lede">
-                    A place for family and friends to leave a memory or message.
-                    Coming soon.
-                </p>
+                <p class="section-lede">Share a memory of Wesley, a kind thought, or a message for his family.</p>
+                <div class="memory-list" id="memory-list"></div>
+                <form class="memory-form" id="memory-form" action="https://formspree.io/f/mjgdogod" method="POST">
+                    <label>
+                        <span>Your name</span>
+                        <input type="text" name="name" required maxlength="80" autocomplete="name" />
+                    </label>
+                    <label>
+                        <span>Your memory or message</span>
+                        <textarea name="memory" required maxlength="2000" rows="5"></textarea>
+                    </label>
+                    <input type="hidden" name="_subject" value="A new memory for Wesley" />
+                    <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Share</button>
+                    <p class="form-note">Messages are reviewed before they appear here.</p>
+                </form>
             </div>
         </section>
     </main>
@@ -106,9 +438,20 @@
     <footer class="footer">
         <div class="container">
             <p>For Wesley. Always loved, always remembered.</p>
+            <button type="button" class="share-btn" id="share-btn">Share this site</button>
+            <p class="small about-site">
+                This site is kept by Wesley's family, and will be cared for until
+                Vada, Riley, and Jimmy are grown.
+            </p>
+            <p class="small">Last updated July 3, 2026</p>
             <p class="small" id="footer-time"></p>
         </div>
     </footer>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Photo viewer" hidden>
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close photo">&times;</button>
+        <img id="lightbox-img" alt="Wesley" />
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>
