@@ -4,9 +4,10 @@
 //   - Blockstream:  wallet balance (when a real address is set)
 
 const CONFIG = {
-    // TEMPORARY test address. Swap in the real family wallet address
-    // here once it's created and funded.
-    walletAddress: 'bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293',
+    // Set to the real family wallet address once it's created and funded.
+    // Until then the wallet card shows a "being set up" state instead of
+    // live numbers. (Earlier test address: bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293)
+    walletAddress: null,
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
@@ -59,22 +60,45 @@ async function fetchCurrentBlockHeight() {
     return parseInt(await res.text(), 10);
 }
 
+// The BTC price on the day Wesley passed never changes, so it's looked up
+// once and remembered. mempool.space serves historical prices with no
+// age limit; CoinGecko's free tier only reaches back 365 days, so it is
+// only a fallback.
 async function fetchBTCPriceAtPassing() {
     const cacheKey = 'btc-price-at-passing-2026-04-25';
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-        const v = parseFloat(cached);
+    try {
+        const v = parseFloat(localStorage.getItem(cacheKey));
         if (v > 0) return v;
+    } catch {}
+
+    const ts = Math.floor(CONFIG.passing.getTime() / 1000);
+    const sources = [
+        async () => {
+            const res = await fetch(`https://mempool.space/api/v1/historical-price?currency=USD&timestamp=${ts}`);
+            if (!res.ok) throw new Error('mempool historical price failed');
+            const data = await res.json();
+            return data?.prices?.[0]?.USD;
+        },
+        async () => {
+            const res = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/history?date=25-04-2026&localization=false');
+            if (!res.ok) throw new Error('coingecko historical price failed');
+            const data = await res.json();
+            return data?.market_data?.current_price?.usd;
+        },
+    ];
+
+    for (const source of sources) {
+        try {
+            const price = await source();
+            if (price > 0) {
+                try { localStorage.setItem(cacheKey, String(price)); } catch {}
+                return price;
+            }
+        } catch (e) {
+            console.warn(e.message);
+        }
     }
-    const dateStr = '25-04-2026';
-    const url = `https://api.coingecko.com/api/v3/coins/bitcoin/history?date=${dateStr}&localization=false`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('historical price fetch failed');
-    const data = await res.json();
-    const price = data?.market_data?.current_price?.usd;
-    if (!price) throw new Error('no historical price');
-    localStorage.setItem(cacheKey, String(price));
-    return price;
+    throw new Error('no historical price available');
 }
 
 async function loadGrowthMetrics(currentSats, currentPrice) {
@@ -121,7 +145,7 @@ async function loadGrowthMetrics(currentSats, currentPrice) {
             setVal('growth-value-sub', `${sign2}${valuePct.toFixed(1)}% on ${btc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC`);
         } else {
             setVal('growth-value', '—', '');
-            setVal('growth-value-sub', 'Awaiting first deposit');
+            setVal('growth-value-sub', 'Wallet being set up');
         }
     } catch (e) {
         console.warn('growth price fetch failed:', e);
@@ -225,16 +249,11 @@ function getBalanceSats() {
 async function loadChart(days) {
     const note = $('#chart-note');
     note.textContent = 'Loading wallet history…';
-    // 'Lifetime' spans Wesley's whole life rather than all of Bitcoin's
-    // history; the wallet had no value before he was born.
-    if (days === 'lifetime') {
-        days = Math.ceil((Date.now() - CONFIG.birth.getTime()) / 86400000);
-    }
     try {
         const [prices, sats] = await Promise.all([fetchPriceHistory(days), getBalanceSats()]);
         const btc = sats / 1e8;
         if (btc <= 0) {
-            note.textContent = 'Wallet is empty. Chart will fill in once funded.';
+            note.textContent = 'The wallet chart will appear here once the wallet is set up and funded.';
             if (chart) { chart.destroy(); chart = null; }
             return;
         }
@@ -248,6 +267,11 @@ async function loadChart(days) {
 }
 
 async function loadWallet() {
+    if (!CONFIG.walletAddress) {
+        $('#btc-balance').textContent = 'Being set up';
+        $('#usd-value').textContent = 'Balance will appear once funded';
+        $('#wallet-address').textContent = 'Coming soon';
+    }
     try {
         const price = await fetchBTCPrice();
         $('#btc-price').textContent = fmtUSD(price.usd);
@@ -271,8 +295,9 @@ async function loadWallet() {
             loadGrowthMetrics(sats, price.usd);
         } else {
             loadGrowthMetrics(0, price.usd);
-            $('#btc-balance').textContent = '… BTC';
-            $('#usd-value').textContent = 'Awaiting wallet';
+            $('#btc-balance').textContent = 'Being set up';
+            $('#usd-value').textContent = 'Balance will appear once funded';
+            $('#wallet-address').textContent = 'Coming soon';
         }
     } catch (e) {
         console.error(e);
@@ -307,7 +332,9 @@ function setAgeLine() {
 
 const GALLERY_REPO = 'PayxDre/Wesley-s-Wallet';
 const GALLERY_PATH = 'assets/photos';
-const GALLERY_BRANCHES = ['main', 'master', 'claude/memorial-bitcoin-wallet-8wg6q'];
+// The branch Cloudflare deploys from goes first, so each visit normally
+// needs a single GitHub API call (GitHub allows ~60/hour per network).
+const GALLERY_BRANCHES = ['claude/memorial-bitcoin-wallet-8wg6q', 'main'];
 let galleryBranch = GALLERY_BRANCHES[0];
 const GALLERY_CACHE_KEY = 'wesley-photos-v7';
 const GALLERY_CACHE_TTL = 10 * 60 * 1000;
