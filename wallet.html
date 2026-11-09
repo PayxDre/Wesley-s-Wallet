@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wesley's Wallet | Wesley's Website | In Loving Memory</title>
+    <meta name="description" content="A bitcoin gift held in Wesley's name for his brother and sisters." />
+    <!-- Family memorial with children's names: shared by link, kept out of search results. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+
+    <!-- Open Graph (iMessage, Facebook, WhatsApp, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wesley's Website" />
+    <meta property="og:title" content="Wesley's Wallet | Wesley's Website | In Loving Memory" />
+    <meta property="og:description" content="A bitcoin gift held in Wesley's name for his brother and sisters." />
+    <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/wallet.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wesley's Wallet | Wesley's Website | In Loving Memory" />
+    <meta name="twitter:description" content="A bitcoin gift held in Wesley's name for his brother and sisters." />
+    <meta name="twitter:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <nav class="site-nav" aria-label="Site">
+        <div class="site-nav-inner">
+            <a class="site-nav-brand" href="index.html">Wesley's Website</a>
+            <div class="site-nav-links">
+                <a href="index.html" data-nav="home">Home</a>
+                <a href="photos.html" data-nav="photos">Photos</a>
+                <a href="words.html" data-nav="words">Words</a>
+                <a href="memories.html" data-nav="memories">Memories</a>
+                <a href="sunsets.html" data-nav="sunsets">Sunsets</a>
+                <a href="wallet.html" data-nav="wallet" aria-current="page">Wallet</a>
+                <a href="letters.html" data-nav="letters" hidden>Letters</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="intro-fly" id="intro-fly" aria-hidden="true">
+        <div class="intro-fly-inner">
+            <img src="assets/lion-balloon.webp" alt="" />
+        </div>
+    </div>
+
+    <main class="page-main">
+        <section id="wallet" class="section wallet">
+            <div class="container">
+                <h2 class="section-title">Wesley's Wallet</h2>
+                <p class="section-lede dedication">
+                    Though Wesley is no longer with us, his love and joy will continue to live
+                    in all of us, forever. As this wallet grows, it stands as a representation
+                    of the love, curiosity, and joy within each of us, continuing on, always.
+                </p>
+                <div class="wallet-card">
+                    <div class="wallet-stat">
+                        <span class="stat-label">Balance</span>
+                        <span class="stat-value" id="btc-balance">… BTC</span>
+                        <span class="stat-sub" id="usd-value">$…</span>
+                    </div>
+                    <div class="wallet-stat">
+                        <span class="stat-label">Bitcoin price</span>
+                        <span class="stat-value" id="btc-price">$…</span>
+                        <span class="stat-sub" id="btc-change">…</span>
+                    </div>
+                    <div class="wallet-stat">
+                        <span class="stat-label">Wallet address</span>
+                        <span class="stat-value mono" id="wallet-address">Coming soon</span>
+                        <span class="stat-sub">Verifiable on the blockchain.</span>
+                    </div>
+                </div>
+
+                <div class="wallet-purpose">
+                    <p>
+                        For every day of Wesley's life, this wallet holds
+                        <strong>0.00002 BTC</strong>. Everything it grows into is being held
+                        for Vada, Riley, and Jimmy, to be theirs when they are older. A gift
+                        from their brother, so they can go where their hearts call, find what
+                        brings them joy, and feel the same love for the world that Wesley did.
+                        He loved being where his family was. This is one way he stays with them.
+                    </p>
+                </div>
+
+                <div class="gift" id="gift">
+                    <h3 class="gift-heading">Add to Wesley's Gift</h3>
+                    <p class="gift-lede">
+                        Anyone who wishes can add to what Vada, Riley, and Jimmy will one day receive.
+                    </p>
+                    <div class="gift-body">
+                        <a class="gift-qr" id="gift-qr" aria-label="Bitcoin address QR code">
+                            <span class="gift-qr-placeholder">QR code<br />coming soon</span>
+                        </a>
+                        <div class="gift-details">
+                            <p class="gift-label">Bitcoin address</p>
+                            <p class="gift-address" id="gift-address">The gift address will be added here soon.</p>
+                            <button type="button" class="gift-copy" id="gift-copy" hidden>Copy address</button>
+                            <ol class="gift-steps" id="gift-steps" hidden>
+                                <li>Open Cash App, River, or any bitcoin app.</li>
+                                <li>Choose <strong>Send</strong>, then <strong>Bitcoin</strong>.</li>
+                                <li>Scan the code or paste the address.</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <p class="gift-note">
+                        This is a family gift held for Wesley's siblings, not a charity,
+                        so contributions are not tax-deductible.
+                    </p>
+                </div>
+
+                <div class="growth-section">
+                    <h3 class="growth-heading">Since he passed</h3>
+                    <div class="growth-grid">
+                        <div class="growth-stat">
+                            <span class="growth-label">Days</span>
+                            <span class="growth-value" id="growth-days">…</span>
+                        </div>
+                        <div class="growth-stat">
+                            <span class="growth-label">Bitcoin blocks</span>
+                            <span class="growth-value" id="growth-blocks">…</span>
+                        </div>
+                        <div class="growth-stat">
+                            <span class="growth-label">BTC price</span>
+                            <span class="growth-value" id="growth-price">…</span>
+                            <span class="growth-sub" id="growth-price-sub"></span>
+                        </div>
+                        <div class="growth-stat">
+                            <span class="growth-label">Wallet growth</span>
+                            <span class="growth-value" id="growth-value">…</span>
+                            <span class="growth-sub" id="growth-value-sub"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-wrap">
+                    <div class="chart-header">
+                        <h3>Wallet value over time</h3>
+                        <div class="chart-range" role="tablist" aria-label="Chart range">
+                            <button class="range-btn" data-days="30" role="tab" aria-selected="false">30D</button>
+                            <button class="range-btn active" data-days="365" role="tab" aria-selected="true">1Y</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="price-chart" aria-label="Wallet value over time chart"></canvas>
+                    </div>
+                    <p class="chart-note" id="chart-note">Loading price history…</p>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="declaration" class="section declaration">
+            <div class="container narrow">
+                <h2 class="section-title">A Declaration on the Blockchain</h2>
+                <p class="section-lede">
+                    Inscribed permanently on the Bitcoin blockchain, in Wesley's memory.
+                </p>
+
+                <div class="declaration-card">
+                    <p class="declaration-text">
+                        Wesley Robert Prisuta (04/20/25 - 04/25/26) beacon of light, cherished by all
+                    </p>
+
+                    <div class="declaration-meta">
+                        <div class="meta-row">
+                            <span class="meta-label">Block</span>
+                            <span class="meta-value">#947,318</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Inscribed</span>
+                            <span class="meta-value">April 30, 2026 UTC</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Network</span>
+                            <span class="meta-value">Bitcoin</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Transaction</span>
+                            <a class="meta-value mono"
+                               href="https://4evr.ink/tx/3c7911a4ceb1a612197e00917ee3c69c3f1b850fd668184e9d9487ac56c7207b"
+                               target="_blank" rel="noopener">
+                                3c7911a4ceb1a612197e00917ee3c69c3f1b850fd668184e9d9487ac56c7207b
+                            </a>
+                        </div>
+                    </div>
+
+                    <p class="declaration-note">
+                        Once written on the Bitcoin blockchain, a declaration cannot be erased,
+                        edited, or taken down. Wesley's name will live on the Bitcoin blockchain
+                        forever.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>For Wesley. Always loved, always remembered.</p>
+            <button type="button" class="share-btn" id="share-btn">Share this site</button>
+            <p class="small about-site">
+                This site is kept by Wesley's family, and will be cared for until
+                Vada, Riley, and Jimmy are grown.
+            </p>
+            <p class="small">Last updated November 9, 2026</p>
+            <p class="small" id="footer-time"></p>
+        </div>
+    </footer>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Photo viewer" hidden>
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close photo">&times;</button>
+        <img id="lightbox-img" alt="Wesley" />
+    </div>
+
+    <script src="assets/vendor/qrcode-generator-1.4.4.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

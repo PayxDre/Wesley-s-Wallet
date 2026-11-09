@@ -1480,6 +1480,141 @@ a:hover {
     .gift-steps { text-align: left; display: inline-block; }
 }
 
+/* ---------- Site navigation (shared across pages) ---------- */
+.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(250, 247, 242, 0.92);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+}
+
+.site-nav-inner {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.site-nav-brand {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.site-nav-brand:hover {
+    color: var(--gold);
+}
+
+.site-nav-links {
+    display: flex;
+    gap: 22px;
+}
+
+.site-nav-links a {
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 6px 0;
+    border-bottom: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.site-nav-links a[hidden] {
+    display: none;
+}
+
+.site-nav-links a:hover,
+.site-nav-links a[aria-current="page"] {
+    color: var(--gold);
+    border-bottom-color: var(--gold-soft);
+}
+
+@media (max-width: 760px) {
+    .site-nav-inner {
+        height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        padding: 10px 0 6px;
+    }
+    .site-nav-brand {
+        text-align: center;
+        font-size: 1.15rem;
+    }
+    /* Links scroll sideways on phones instead of wrapping */
+    .site-nav-links {
+        overflow-x: auto;
+        gap: 20px;
+        padding: 4px 20px 6px;
+        scrollbar-width: none;
+        justify-content: flex-start;
+    }
+    .site-nav-links::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* Inner pages start without a hero: no rule above the first section */
+.page-main > .section:first-child {
+    border-top: none;
+    padding-top: 72px;
+}
+
+/* ---------- Home: explore cards ---------- */
+.explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+.explore-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 26px 24px;
+    color: var(--ink);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.explore-card:hover {
+    color: var(--ink);
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(45, 42, 38, 0.05), 0 14px 32px rgba(45, 42, 38, 0.1);
+}
+
+.explore-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.45rem;
+    color: var(--ink);
+}
+
+.explore-card:hover .explore-title {
+    color: var(--gold);
+}
+
+.explore-text {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+}
+
 /* ---------- Footer ---------- */
 .footer {
     padding: 60px 0 80px;

@@ -687,7 +687,8 @@ function setupCandle() {
 
 async function loadLetters() {
     const container = document.getElementById('letters-list');
-    if (!container) return;
+    const navLink = document.querySelector('[data-nav="letters"]');
+    if (!container && !navLink) return;
 
     let letters = [];
     try {
@@ -700,6 +701,8 @@ async function loadLetters() {
     // Section stays hidden until at least one letter exists, so visitors
     // never see an empty or technical placeholder.
     if (!Array.isArray(letters) || letters.length === 0) return;
+    if (navLink) navLink.hidden = false;
+    if (!container) return;
     const section = document.getElementById('letters');
     if (section) section.hidden = false;
 
@@ -1010,7 +1013,44 @@ function setupGift() {
     }
 }
 
+// Decorative floating hearts, bitcoin symbols, and teddy faces behind the
+// content. Built here so every page shares one definition.
+const FLOAT_ITEMS = [
+    ['heart', 6, 12, 0, 22, 22], ['btc', 22, 6, 3, 18, 26], ['bear', 38, 14, 6, 24, 24],
+    ['heart', 56, 9, 1, 20, 18], ['btc', 72, 16, 4, 22, 22], ['bear', 88, 8, 7, 26, 26],
+    ['heart', 14, 32, 2, 18, 20], ['btc', 32, 38, 5, 24, 18], ['bear', 50, 30, 8, 20, 24],
+    ['heart', 68, 36, 0, 22, 22], ['btc', 84, 32, 3, 18, 28], ['bear', 8, 52, 6, 24, 22],
+    ['heart', 28, 58, 9, 20, 26], ['btc', 46, 50, 2, 22, 20], ['bear', 64, 56, 5, 18, 22],
+    ['heart', 82, 50, 8, 24, 18], ['btc', 16, 78, 1, 22, 24], ['bear', 36, 84, 4, 18, 22],
+    ['heart', 54, 78, 7, 22, 20], ['btc', 76, 82, 0, 26, 26], ['bear', 92, 76, 3, 20, 22],
+];
+
+function buildFloatingBackground() {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const defs = document.createElementNS(svgNS, 'svg');
+    defs.setAttribute('width', '0');
+    defs.setAttribute('height', '0');
+    defs.setAttribute('aria-hidden', 'true');
+    defs.style.position = 'absolute';
+    defs.innerHTML = `<defs>
+        <symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
+        <symbol id="ic-bear" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><circle cx="5.5" cy="6" r="3"/><circle cx="18.5" cy="6" r="3"/><circle cx="9" cy="12" r="1" fill="#fff"/><circle cx="15" cy="12" r="1" fill="#fff"/></symbol>
+    </defs>`;
+
+    const layer = document.createElement('div');
+    layer.className = 'floating-bg';
+    layer.setAttribute('aria-hidden', 'true');
+    layer.innerHTML = FLOAT_ITEMS.map(([kind, x, y, d, r, size]) => {
+        const style = `--x:${x}%;--y:${y}%;--d:${d}s;--r:${r}s;--s:${size}px`;
+        const inner = kind === 'btc' ? '₿' : `<svg><use href="#ic-${kind}"/></svg>`;
+        return `<span class="float-item float-${kind}" style="${style}">${inner}</span>`;
+    }).join('');
+
+    document.body.prepend(defs, layer);
+}
+
 (async function init() {
+    buildFloatingBackground();
     setupIntroFly();
     setAgeLine();
     setFooterTime();
@@ -1025,11 +1065,13 @@ function setupGift() {
     loadMemories();
     setupMemoryForm();
     loadGallery();
-    try {
-        await loadChartAdapter();
-    } catch (e) {
-        console.error('chart adapter failed', e);
+    if (document.getElementById('wallet')) {
+        try {
+            await loadChartAdapter();
+        } catch (e) {
+            console.error('chart adapter failed', e);
+        }
+        loadWallet();
+        loadChart(365);
     }
-    loadWallet();
-    loadChart(365);
 })();
