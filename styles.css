@@ -1644,6 +1644,11 @@ section,
     }
 }
 
+/* When the lion art opens a page, pull the first section up under it */
+.lion-divider + .page-main > .section:first-child {
+    padding-top: 16px;
+}
+
 /* Inner pages start without a hero: no rule above the first section */
 .page-main > .section:first-child {
     border-top: none;
