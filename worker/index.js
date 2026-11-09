@@ -1,0 +1,198 @@
+// Wesley's Website: submissions API.
+//
+// Visitors submit memories and sunset photos from forms on the site. Each
+// submission is stored privately in Cloudflare KV as "pending". Nothing is
+// public until the family's review bot approves it and publishes it to the
+// repository (assets/memories.json, assets/sunsets/).
+//
+// Public endpoints (used by the site's forms):
+//   POST /api/memory          JSON {name, memory, website}
+//   POST /api/sunset          multipart {photo, name?, place?, website}
+//
+// Review endpoints (require "Authorization: Bearer <BOT_KEY>"):
+//   GET    /api/pending              list pending submissions, oldest first
+//   GET    /api/pending/:id/photo    download a pending sunset photo
+//   DELETE /api/pending/:id          remove a submission after review
+//
+// Every other request is served from the static site files.
+
+const MAX_NAME = 80;
+const MAX_MEMORY = 2000;
+const MAX_PLACE = 100;
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+const SUBMISSIONS_PER_IP_PER_HOUR = 10;
+
+export default {
+    async fetch(request, env) {
+        const url = new URL(request.url);
+        if (url.pathname.startsWith('/api/')) {
+            try {
+                return await handleApi(request, env, url);
+            } catch (err) {
+                console.error(err);
+                return json({ error: 'Something went wrong. Please try again.' }, 500);
+            }
+        }
+        return env.ASSETS.fetch(request);
+    },
+};
+
+async function handleApi(request, env, url) {
+    const path = url.pathname;
+    const method = request.method;
+
+    if (path === '/api/memory' && method === 'POST') return submitMemory(request, env);
+    if (path === '/api/sunset' && method === 'POST') return submitSunset(request, env);
+
+    if (path === '/api/pending' || path.startsWith('/api/pending/')) {
+        if (!(await isAuthorized(request, env))) return json({ error: 'Unauthorized' }, 401);
+        if (path === '/api/pending' && method === 'GET') return listPending(env);
+        const photoMatch = path.match(/^\/api\/pending\/([\w-]+)\/photo$/);
+        if (photoMatch && method === 'GET') return getPhoto(env, photoMatch[1]);
+        const idMatch = path.match(/^\/api\/pending\/([\w-]+)$/);
+        if (idMatch && method === 'DELETE') return deletePending(env, idMatch[1]);
+    }
+
+    return json({ error: 'Not found' }, 404);
+}
+
+// ---------- Public submissions ----------
+
+async function submitMemory(request, env) {
+    let body;
+    try {
+        body = await request.json();
+    } catch {
+        return json({ error: 'Invalid request.' }, 400);
+    }
+    // Honeypot: real visitors never fill this hidden field. Pretend success.
+    if (clean(body.website)) return json({ ok: true });
+
+    const name = clean(body.name);
+    const memory = clean(body.memory);
+    if (!name || !memory) return json({ error: 'Please include your name and a memory.' }, 400);
+    if (name.length > MAX_NAME || memory.length > MAX_MEMORY) {
+        return json({ error: 'That message is too long.' }, 400);
+    }
+    if (!(await withinRateLimit(request, env))) {
+        return json({ error: 'Too many submissions. Please try again later.' }, 429);
+    }
+
+    const id = newId();
+    await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify({
+        id, type: 'memory', name, memory, received: new Date().toISOString(),
+    }));
+    return json({ ok: true });
+}
+
+async function submitSunset(request, env) {
+    let form;
+    try {
+        form = await request.formData();
+    } catch {
+        return json({ error: 'Invalid request.' }, 400);
+    }
+    if (clean(form.get('website'))) return json({ ok: true });
+
+    const photo = form.get('photo');
+    if (!photo || typeof photo === 'string' || !photo.size) {
+        return json({ error: 'Please choose a photo.' }, 400);
+    }
+    const type = photo.type || '';
+    if (!type.startsWith('image/')) return json({ error: 'Please choose an image file.' }, 400);
+    if (photo.size > MAX_PHOTO_BYTES) return json({ error: 'That photo is too large.' }, 400);
+
+    const name = clean(form.get('name')).slice(0, MAX_NAME);
+    const place = clean(form.get('place')).slice(0, MAX_PLACE);
+    if (!(await withinRateLimit(request, env))) {
+        return json({ error: 'Too many submissions. Please try again later.' }, 429);
+    }
+
+    const id = newId();
+    await env.SUBMISSIONS.put(`photo:${id}`, await photo.arrayBuffer(), {
+        metadata: { contentType: type },
+    });
+    await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify({
+        id, type: 'sunset', name, place, received: new Date().toISOString(),
+        photo: { contentType: type, bytes: photo.size, url: `/api/pending/${id}/photo` },
+    }));
+    return json({ ok: true });
+}
+
+// ---------- Review (bot only) ----------
+
+async function listPending(env) {
+    const items = [];
+    let cursor;
+    do {
+        const page = await env.SUBMISSIONS.list({ prefix: 'sub:', cursor });
+        for (const key of page.keys) {
+            const value = await env.SUBMISSIONS.get(key.name, 'json');
+            if (value) items.push(value);
+        }
+        cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor);
+    items.sort((a, b) => a.received.localeCompare(b.received));
+    return json({ pending: items });
+}
+
+async function getPhoto(env, id) {
+    const { value, metadata } = await env.SUBMISSIONS.getWithMetadata(`photo:${id}`, 'arrayBuffer');
+    if (!value) return json({ error: 'Not found' }, 404);
+    return new Response(value, {
+        headers: {
+            'Content-Type': (metadata && metadata.contentType) || 'application/octet-stream',
+            'Cache-Control': 'no-store',
+        },
+    });
+}
+
+async function deletePending(env, id) {
+    await env.SUBMISSIONS.delete(`sub:${id}`);
+    await env.SUBMISSIONS.delete(`photo:${id}`);
+    return json({ ok: true });
+}
+
+// ---------- Helpers ----------
+
+async function isAuthorized(request, env) {
+    const header = request.headers.get('Authorization') || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+    if (!env.BOT_KEY || !token) return false;
+    // Compare digests so the check takes the same time whatever the input.
+    const enc = new TextEncoder();
+    const [a, b] = await Promise.all([
+        crypto.subtle.digest('SHA-256', enc.encode(token)),
+        crypto.subtle.digest('SHA-256', enc.encode(env.BOT_KEY)),
+    ]);
+    const x = new Uint8Array(a);
+    const y = new Uint8Array(b);
+    let diff = 0;
+    for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+    return diff === 0;
+}
+
+async function withinRateLimit(request, env) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const hour = Math.floor(Date.now() / 3600000);
+    const key = `rl:${ip}:${hour}`;
+    const count = parseInt((await env.SUBMISSIONS.get(key)) || '0', 10);
+    if (count >= SUBMISSIONS_PER_IP_PER_HOUR) return false;
+    await env.SUBMISSIONS.put(key, String(count + 1), { expirationTtl: 3600 });
+    return true;
+}
+
+function newId() {
+    return `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function clean(value) {
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function json(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    });
+}

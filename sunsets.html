@@ -56,13 +56,25 @@
                 <p class="sunset-count" id="sunset-count" hidden></p>
                 <div class="sunset-grid" id="sunset-grid"></div>
                 <p class="sunset-empty" id="sunset-empty">The first sunsets will appear here soon.</p>
-                <div class="sunset-share">
-                    <a class="sunset-btn" id="sunset-email" href="#sunsets">Send a sunset</a>
-                    <p class="form-note">
-                        Attach your photo and, if you like, where you watched it and your name.
-                        Sunsets are added after a quick look.
-                    </p>
-                </div>
+                <form class="memory-form sunset-form" id="sunset-form">
+                    <h3 class="sunset-form-title">Share a sunset</h3>
+                    <label class="sunset-pick" id="sunset-pick">
+                        <input type="file" name="photo" accept="image/*" required />
+                        <img class="sunset-preview" id="sunset-preview" alt="" hidden />
+                        <span class="sunset-pick-text" id="sunset-pick-text">Choose a photo</span>
+                    </label>
+                    <label>
+                        <span>Where you watched it <em>(optional)</em></span>
+                        <input type="text" name="place" maxlength="100" placeholder="e.g. Cape May, NJ" />
+                    </label>
+                    <label>
+                        <span>Your name <em>(optional)</em></span>
+                        <input type="text" name="name" maxlength="80" autocomplete="name" />
+                    </label>
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Send sunset</button>
+                    <p class="form-note">Sunsets are added to the collage after a quick look.</p>
+                </form>
             </div>
         </section>
     </main>
