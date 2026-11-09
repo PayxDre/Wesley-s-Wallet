@@ -4,6 +4,9 @@
   "main": "worker/index.js",
   "compatibility_date": "2026-07-03",
   "compatibility_flags": ["nodejs_compat"],
+  // Keep variables added in the dashboard when deploying, so a deploy
+  // never wipes them.
+  "keep_vars": true,
   "observability": {
     "enabled": true
   },

@@ -45,7 +45,12 @@ async function handleApi(request, env, url) {
     if (path === '/api/sunset' && method === 'POST') return submitSunset(request, env);
 
     if (path === '/api/pending' || path.startsWith('/api/pending/')) {
-        if (!(await isAuthorized(request, env))) return json({ error: 'Unauthorized' }, 401);
+        // Tell "no key configured" apart from "wrong key" so setup problems
+        // are easy to diagnose. Neither response reveals anything about the key.
+        if (!configuredKey(env)) {
+            return json({ error: 'BOT_KEY is not set on this worker. Add it under Settings > Variables and Secrets as type Secret.' }, 503);
+        }
+        if (!(await isAuthorized(request, env))) return json({ error: 'Unauthorized: the key does not match.' }, 401);
         if (path === '/api/pending' && method === 'GET') return listPending(env);
         const photoMatch = path.match(/^\/api\/pending\/([\w-]+)\/photo$/);
         if (photoMatch && method === 'GET') return getPhoto(env, photoMatch[1]);
@@ -155,15 +160,23 @@ async function deletePending(env, id) {
 
 // ---------- Helpers ----------
 
+function configuredKey(env) {
+    return typeof env.BOT_KEY === 'string' ? env.BOT_KEY.trim() : '';
+}
+
 async function isAuthorized(request, env) {
-    const header = request.headers.get('Authorization') || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-    if (!env.BOT_KEY || !token) return false;
+    // Accept "Bearer <key>" with any capitalization and ignore stray
+    // whitespace on either side (a common copy-paste difference).
+    const header = (request.headers.get('Authorization') || '').trim();
+    const match = header.match(/^bearer\s+(.+)$/i);
+    const token = match ? match[1].trim() : '';
+    const key = configuredKey(env);
+    if (!key || !token) return false;
     // Compare digests so the check takes the same time whatever the input.
     const enc = new TextEncoder();
     const [a, b] = await Promise.all([
         crypto.subtle.digest('SHA-256', enc.encode(token)),
-        crypto.subtle.digest('SHA-256', enc.encode(env.BOT_KEY)),
+        crypto.subtle.digest('SHA-256', enc.encode(key)),
     ]);
     const x = new Uint8Array(a);
     const y = new Uint8Array(b);
