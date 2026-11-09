@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wesley in the Wild | Wesley's Website | In Loving Memory</title>
+    <meta name="description" content="Sunrises, sunsets, and the places we feel Wesley. Share a moment where you felt him." />
+    <!-- Family memorial with children's names: shared by link, kept out of search results. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+
+    <!-- Open Graph (iMessage, Facebook, WhatsApp, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wesley's Website" />
+    <meta property="og:title" content="Wesley in the Wild | Wesley's Website | In Loving Memory" />
+    <meta property="og:description" content="Sunrises, sunsets, and the places we feel Wesley. Share a moment where you felt him." />
+    <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/wild.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wesley in the Wild | Wesley's Website | In Loving Memory" />
+    <meta name="twitter:description" content="Sunrises, sunsets, and the places we feel Wesley. Share a moment where you felt him." />
+    <meta name="twitter:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <nav class="site-nav" aria-label="Site">
+        <div class="site-nav-inner">
+            <a class="site-nav-brand" href="index.html">Wesley's Website</a>
+            <div class="site-nav-links">
+                <a href="index.html" data-nav="home">Home</a>
+                <a href="photos.html" data-nav="photos">Photos</a>
+                <a href="words.html" data-nav="words">Words</a>
+                <a href="memories.html" data-nav="memories">Memories</a>
+                <a href="wild.html" data-nav="wild" aria-current="page">In the Wild</a>
+                <a href="wallet.html" data-nav="wallet">Wallet</a>
+                <a href="little-lion.html" data-nav="little-lion">Little Lion</a>
+                <a href="letters.html" data-nav="letters" hidden>Letters</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page-main">
+        <section id="sunsets" class="section sunsets">
+            <div class="container">
+                <h2 class="section-title">Wesley in the Wild</h2>
+                <p class="section-lede">
+                    Some moments just feel like him: a sunrise, a sunset, a quiet trail, a big
+                    open sky. Whenever you feel Wesley with you out in the world, take a picture
+                    and share it here so we can all feel it too.
+                </p>
+                <p class="sunset-count" id="sunset-count" hidden></p>
+
+                <div class="sr-views" id="sr-views" role="tablist" aria-label="Ways to view the photos" hidden>
+                    <button type="button" class="sr-tab is-active" data-view="collage" role="tab" aria-selected="true">Collage</button>
+                    <button type="button" class="sr-tab" data-view="single" role="tab" aria-selected="false">One at a time</button>
+                    <button type="button" class="sr-tab" data-view="mesh" role="tab" aria-selected="false">Blended into one</button>
+                </div>
+
+                <div class="sr-panel" data-panel="collage">
+                    <div class="sunset-grid" id="sunset-grid"></div>
+                </div>
+
+                <div class="sr-panel" data-panel="single" hidden>
+                    <div class="sr-viewer sr-inline" id="sr-inline"></div>
+                </div>
+
+                <div class="sr-panel" data-panel="mesh" hidden>
+                    <div class="sr-mesh-frame">
+                        <p class="sr-blend-status" id="sr-blend-status" hidden>Gathering photos…</p>
+                        <canvas id="sr-mesh-canvas" width="1440" height="800" aria-label="Every shared photo blended into one picture" hidden></canvas>
+                    </div>
+                    <div class="sr-mesh-actions">
+                        <button type="button" class="sr-chip" id="sr-mesh-download" disabled>Download image</button>
+                    </div>
+                    <p class="form-note" id="sr-blend-note">
+                        Every moment shared so far, lined up along one horizon and softly
+                        blended into a single picture, oldest on the left and newest on the right.
+                    </p>
+                </div>
+
+                <p class="sunset-empty" id="sunset-empty">The first photos will appear here soon.</p>
+                <form class="memory-form upload-form sunset-form" id="sunset-form">
+                    <picture class="lion-perch lion-on-card lion-on-card--left" aria-hidden="true"><source srcset="assets/lion-plush.webp" type="image/webp" /><img src="assets/lion-plush.png" alt="" width="340" height="326" loading="lazy" /></picture>
+                    <h3 class="sunset-form-title">Share a moment</h3>
+                    <label class="sunset-pick">
+                        <input type="file" name="photo" accept="image/*" required />
+                        <img class="sunset-preview upload-preview-img" alt="" hidden />
+                        <span class="sunset-pick-text upload-pick-text">Choose a photo</span>
+                    </label>
+                    <label>
+                        <span>Where were you? <em>(optional)</em></span>
+                        <input type="text" name="place" maxlength="100" placeholder="e.g. Cape May, NJ" />
+                    </label>
+                    <label>
+                        <span>Your name <em>(optional)</em></span>
+                        <input type="text" name="name" maxlength="80" autocomplete="name" />
+                    </label>
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Share</button>
+                    <p class="form-note">Photos are added here after a quick look.</p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <nav class="next-page" aria-label="Next page">
+        <a class="next-page-link" href="wallet.html">
+            <span class="next-page-eyebrow">Next</span>
+            <span class="next-page-title">Wesley's Wallet <span class="next-page-arrow" aria-hidden="true">&rarr;</span></span>
+            <span class="next-page-text">A gift held for Vada, Riley, and Jimmy.</span>
+        </a>
+    </nav>
+
+    <footer class="footer">
+        <div class="container">
+            <p>For Wesley. Always loved, always remembered.</p>
+            <button type="button" class="share-btn" id="share-btn">Share this site</button>
+            <p class="small about-site">
+                This site is kept by Wesley's family, and will be cared for until
+                Vada, Riley, and Jimmy are grown.
+            </p>
+            <p class="small">Last updated November 9, 2026</p>
+            <p class="small" id="footer-time"></p>
+        </div>
+    </footer>
+
+    <div class="sr-overlay" id="sr-overlay" role="dialog" aria-label="Photo viewer" hidden>
+        <button type="button" class="sr-close" id="sr-close" aria-label="Close">&times;</button>
+        <div class="sr-viewer sr-modal" id="sr-modal"></div>
+    </div>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Photo viewer" hidden>
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close photo">&times;</button>
+        <img id="lightbox-img" alt="Wesley" />
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

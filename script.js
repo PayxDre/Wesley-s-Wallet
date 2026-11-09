@@ -1297,9 +1297,9 @@ function sunriseLocal(item) {
 function createSunriseViewer(root, items) {
     root.innerHTML = `
         <div class="sr-stage">
-            <button type="button" class="sr-arrow sr-prev" aria-label="Previous sunrise">&#8249;</button>
+            <button type="button" class="sr-arrow sr-prev" aria-label="Previous photo">&#8249;</button>
             <img class="sr-img" alt="" />
-            <button type="button" class="sr-arrow sr-next" aria-label="Next sunrise">&#8250;</button>
+            <button type="button" class="sr-arrow sr-next" aria-label="Next photo">&#8250;</button>
         </div>
         <div class="sr-caption" aria-live="polite">
             <span class="sr-place"></span>
@@ -1328,8 +1328,8 @@ function createSunriseViewer(root, items) {
         const item = items[index];
         img.dataset.fallback = '';
         img.src = sunriseThumb(item, 1600);
-        img.alt = item.place ? `Sunrise at ${item.place}` : 'A sunrise shared for Wesley';
-        placeEl.textContent = item.place || 'A sunrise for Wesley';
+        img.alt = item.place ? `A moment shared from ${item.place}` : 'A moment shared for Wesley';
+        placeEl.textContent = item.place || 'Wesley in the wild';
         metaEl.textContent = [item.name && `Shared by ${item.name}`, fmtShortDate(item.date)]
             .filter(Boolean).join(' · ');
         countEl.textContent = items.length > 1 ? `${index + 1} of ${items.length}` : '';
@@ -1606,7 +1606,7 @@ async function drawBlendedSunrise(canvas, items, onProgress) {
     const list = all.length <= BLEND_MAX ? all
         : Array.from({ length: BLEND_MAX }, (_, i) => all[Math.round((i * (all.length - 1)) / (BLEND_MAX - 1))]);
 
-    onProgress('Gathering sunrises…');
+    onProgress('Gathering photos…');
     const loaded = await Promise.all(list.map(loadBlendImage));
     const photos = loaded.filter(Boolean).map((img) => ({ img, ...analyzeSunrise(img) }));
     const n = photos.length;
@@ -1729,7 +1729,7 @@ async function drawBlendedSunrise(canvas, items, onProgress) {
     let cur = prepare(0);
     let seamL = null;
     for (let i = 0; i < n; i++) {
-        onProgress(`Blending sunrise ${i + 1} of ${n}…`);
+        onProgress(`Blending photo ${i + 1} of ${n}…`);
         await nextFrame();
         const next = i + 1 < n ? prepare(i + 1) : null;
         const seamR = next ? findSeam(cur, next, (i + 1) * slot, Math.min(slot * 0.45, 360), H) : null;
@@ -1779,12 +1779,12 @@ async function drawBlendedSunrise(canvas, items, onProgress) {
     ctx.shadowBlur = 10;
     ctx.fillStyle = '#fffaf2';
     ctx.font = 'italic 60px "Cormorant Garamond", Georgia, serif';
-    ctx.fillText('Sunrises for Wesley', W / 2, H - 84);
+    ctx.fillText('Wesley in the Wild', W / 2, H - 84);
     ctx.font = '500 22px Inter, Arial, sans-serif';
     ctx.fillStyle = 'rgba(255,250,242,0.88)';
     const total = Math.max(all.length, n);
-    const line = n === 1 ? 'The first sunrise, with more to come'
-        : `${n < total ? `${n} of ${total}` : n} sunrises, blended into one`;
+    const line = n === 1 ? 'The first moment, with more to come'
+        : `${n < total ? `${n} of ${total}` : n} moments, blended into one`;
     ctx.fillText(line, W / 2, H - 44);
     ctx.shadowBlur = 0;
     return true;
@@ -1825,7 +1825,7 @@ function setupSunriseBlend(items) {
             if (!blob) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'sunrises-for-wesley.jpg';
+            a.download = 'wesley-in-the-wild.jpg';
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -1848,7 +1848,7 @@ function setupSunriseBlend(items) {
                 ok = true;
                 if (note) {
                     const n = Number(published.count);
-                    const parts = [n > 0 ? `${n} ${n === 1 ? 'sunrise' : 'sunrises'} blended into one sky` : 'The sunrises shared so far, blended into one sky'];
+                    const parts = [n > 0 ? `${n} ${n === 1 ? 'moment' : 'moments'} blended into one picture` : 'Every moment shared so far, blended into one picture'];
                     if (published.updated) parts.push(`updated ${fmtShortDate(published.updated)}`);
                     note.textContent = `${parts.join(', ')}.`;
                 }
@@ -1860,7 +1860,7 @@ function setupSunriseBlend(items) {
         }
         canvas.hidden = !ok;
         status.hidden = ok;
-        if (!ok) status.textContent = 'The blended sunrise could not be made right now.';
+        if (!ok) status.textContent = 'The blended picture could not be made right now.';
         dl.disabled = !ok;
     };
 }
@@ -1881,14 +1881,14 @@ async function loadSunsets() {
         const figure = document.createElement('figure');
         figure.className = 'sunset';
         const img = document.createElement('img');
-        img.alt = item.place ? `Sunrise at ${item.place}` : 'A sunrise shared for Wesley';
+        img.alt = item.place ? `A moment shared from ${item.place}` : 'A moment shared for Wesley';
         img.loading = 'lazy';
         setImageWithFallback(img, item.file, 600, figure, SUNSET_PATH);
         const cap = document.createElement('figcaption');
         cap.className = 'sunset-cap';
         const place = document.createElement('span');
         place.className = 'cap-place';
-        place.textContent = item.place || 'A sunrise for Wesley';
+        place.textContent = item.place || 'Wesley in the wild';
         const meta = document.createElement('span');
         meta.className = 'cap-meta';
         meta.textContent = [item.name, fmtShortDate(item.date)].filter(Boolean).join(' · ');
@@ -1905,7 +1905,7 @@ async function loadSunsets() {
     });
     if (empty) empty.hidden = true;
     if (count) {
-        count.textContent = `${items.length.toLocaleString()} ${items.length === 1 ? 'sunrise' : 'sunrises'} shared so far`;
+        count.textContent = `${items.length.toLocaleString()} ${items.length === 1 ? 'moment' : 'moments'} shared so far`;
         count.hidden = false;
     }
 
@@ -2084,13 +2084,13 @@ function setupUploadForm(formId, endpoint, successText, fields) {
 // Decorative floating hearts, bitcoin symbols, and teddy faces behind the
 // content. Built here so every page shares one definition.
 const FLOAT_ITEMS = [
-    ['heart', 6, 12, 0, 22, 22], ['btc', 22, 6, 3, 18, 26], ['bear', 38, 14, 6, 24, 24],
-    ['heart', 56, 9, 1, 20, 18], ['btc', 72, 16, 4, 22, 22], ['bear', 88, 8, 7, 26, 26],
-    ['heart', 14, 32, 2, 18, 20], ['btc', 32, 38, 5, 24, 18], ['bear', 50, 30, 8, 20, 24],
-    ['heart', 68, 36, 0, 22, 22], ['btc', 84, 32, 3, 18, 28], ['bear', 8, 52, 6, 24, 22],
-    ['heart', 28, 58, 9, 20, 26], ['btc', 46, 50, 2, 22, 20], ['bear', 64, 56, 5, 18, 22],
-    ['heart', 82, 50, 8, 24, 18], ['btc', 16, 78, 1, 22, 24], ['bear', 36, 84, 4, 18, 22],
-    ['heart', 54, 78, 7, 22, 20], ['btc', 76, 82, 0, 26, 26], ['bear', 92, 76, 3, 20, 22],
+    ['heart', 6, 12, 0, 22, 22], ['btc', 22, 6, 3, 18, 26], ['lion', 38, 14, 6, 24, 24],
+    ['heart', 56, 9, 1, 20, 18], ['btc', 72, 16, 4, 22, 22], ['lion', 88, 8, 7, 26, 26],
+    ['heart', 14, 32, 2, 18, 20], ['btc', 32, 38, 5, 24, 18], ['lion', 50, 30, 8, 20, 24],
+    ['heart', 68, 36, 0, 22, 22], ['btc', 84, 32, 3, 18, 28], ['lion', 8, 52, 6, 24, 22],
+    ['heart', 28, 58, 9, 20, 26], ['btc', 46, 50, 2, 22, 20], ['lion', 64, 56, 5, 18, 22],
+    ['heart', 82, 50, 8, 24, 18], ['btc', 16, 78, 1, 22, 24], ['lion', 36, 84, 4, 18, 22],
+    ['heart', 54, 78, 7, 22, 20], ['btc', 76, 82, 0, 26, 26], ['lion', 92, 76, 3, 20, 22],
 ];
 
 function buildFloatingBackground() {
@@ -2102,13 +2102,17 @@ function buildFloatingBackground() {
     defs.style.position = 'absolute';
     defs.innerHTML = `<defs>
         <symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
-        <symbol id="ic-bear" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><circle cx="5.5" cy="6" r="3"/><circle cx="18.5" cy="6" r="3"/><circle cx="9" cy="12" r="1" fill="#fff"/><circle cx="15" cy="12" r="1" fill="#fff"/></symbol>
+        <symbol id="ic-lion" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="21.00" cy="12.00" r="2.7"/><circle cx="19.79" cy="16.50" r="2.7"/><circle cx="16.50" cy="19.79" r="2.7"/><circle cx="12.00" cy="21.00" r="2.7"/><circle cx="7.50" cy="19.79" r="2.7"/><circle cx="4.21" cy="16.50" r="2.7"/><circle cx="3.00" cy="12.00" r="2.7"/><circle cx="4.21" cy="7.50" r="2.7"/><circle cx="7.50" cy="4.21" r="2.7"/><circle cx="12.00" cy="3.00" r="2.7"/><circle cx="16.50" cy="4.21" r="2.7"/><circle cx="19.79" cy="7.50" r="2.7"/><circle cx="12" cy="12.6" r="6.2" fill="#fff" fill-opacity="0.6"/><circle cx="7.9" cy="7.6" r="1.7" fill="#fff" fill-opacity="0.6"/><circle cx="16.1" cy="7.6" r="1.7" fill="#fff" fill-opacity="0.6"/><circle cx="9.8" cy="11.6" r="1"/><circle cx="14.2" cy="11.6" r="1"/><path d="M10.6 14h2.8l-1.4 1.6z"/><path d="M12 15.6v.9" stroke="currentColor" stroke-width=".7" fill="none"/></symbol>
+        <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19.20" y1="12.00" x2="22.40" y2="12.00"/><line x1="17.09" y1="17.09" x2="19.35" y2="19.35"/><line x1="12.00" y1="19.20" x2="12.00" y2="22.40"/><line x1="6.91" y1="17.09" x2="4.65" y2="19.35"/><line x1="4.80" y1="12.00" x2="1.60" y2="12.00"/><line x1="6.91" y1="6.91" x2="4.65" y2="4.65"/><line x1="12.00" y1="4.80" x2="12.00" y2="1.60"/><line x1="17.09" y1="6.91" x2="19.35" y2="4.65"/></g></symbol>
     </defs>`;
 
     const layer = document.createElement('div');
     layer.className = 'floating-bg';
     layer.setAttribute('aria-hidden', 'true');
-    layer.innerHTML = FLOAT_ITEMS.map(([kind, x, y, d, r, size]) => {
+    // Bitcoin marks belong to the wallet page; everywhere else they're suns.
+    const onWallet = !!document.getElementById('wallet');
+    layer.innerHTML = FLOAT_ITEMS.map(([kind0, x, y, d, r, size]) => {
+        const kind = kind0 === 'btc' && !onWallet ? 'sun' : kind0;
         const style = `--x:${x}%;--y:${y}%;--d:${d}s;--r:${r}s;--s:${size}px`;
         const inner = kind === 'btc' ? '₿' : `<svg><use href="#ic-${kind}"/></svg>`;
         return `<span class="float-item float-${kind}" style="${style}">${inner}</span>`;
@@ -2130,7 +2134,7 @@ function buildFloatingBackground() {
     setupGift();
     loadSunsets();
     setupUploadForm('sunset-form', '/api/sunset',
-        'Thank you. Your sunrise has been received and will join the collage after a quick look.',
+        'Thank you. Your photo has been received and will join the others after a quick look.',
         ['place', 'name']);
     setupUploadForm('photo-form', '/api/photo',
         'Thank you. Your photo has been received and will join the gallery after a quick look.',
