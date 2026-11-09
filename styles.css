@@ -1323,6 +1323,26 @@ a:hover {
     .sunset { border-radius: 5px; }
 }
 
+.form-success p {
+    margin: 0 0 10px;
+}
+
+.form-fallback {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+}
+
+.form-address {
+    color: var(--ink);
+    word-break: break-all;
+}
+
+.form-success .gift-copy {
+    margin: 6px 0 0;
+}
+
 /* ---------- Add to Wesley's Gift ---------- */
 .gift {
     max-width: 720px;
