@@ -949,7 +949,7 @@ async function loadSunsets() {
         const figure = document.createElement('figure');
         figure.className = 'sunset';
         const img = document.createElement('img');
-        img.alt = 'A sunset shared for Wesley';
+        img.alt = 'A sunrise shared for Wesley';
         img.loading = 'lazy';
         setImageWithFallback(img, name, 500, figure, SUNSET_PATH);
         img.addEventListener('click', () => openLightbox(localPhotoURL(name, SUNSET_PATH)));
@@ -958,7 +958,7 @@ async function loadSunsets() {
     });
     if (empty) empty.hidden = true;
     if (count) {
-        count.textContent = `${names.length.toLocaleString()} ${names.length === 1 ? 'sunset' : 'sunsets'} shared so far`;
+        count.textContent = `${names.length.toLocaleString()} ${names.length === 1 ? 'sunrise' : 'sunrises'} shared so far`;
         count.hidden = false;
     }
 }
@@ -1129,7 +1129,7 @@ function buildFloatingBackground() {
     setupGift();
     loadSunsets();
     setupUploadForm('sunset-form', '/api/sunset',
-        'Thank you. Your sunset has been received and will join the collage after a quick look.',
+        'Thank you. Your sunrise has been received and will join the collage after a quick look.',
         ['place', 'name']);
     setupUploadForm('photo-form', '/api/photo',
         'Thank you. Your photo has been received and will join the gallery after a quick look.',
