@@ -1450,6 +1450,12 @@ a:hover {
 }
 
 /* ---------- Submission forms (shared) ---------- */
+/* Keep in-page jumps from landing under the sticky menu */
+section,
+.form-success {
+    scroll-margin-top: 90px;
+}
+
 .hp-field {
     position: absolute;
     left: -9999px;

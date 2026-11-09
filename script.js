@@ -818,6 +818,9 @@ async function submitToSite(form, url, options, successText) {
         done.className = 'form-success';
         done.textContent = successText;
         form.replaceWith(done);
+        // The message is much shorter than the form it replaces, so bring
+        // it into view; otherwise it can end up off-screen or under the menu.
+        done.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (err) {
         button.disabled = false;
         button.textContent = originalText;
