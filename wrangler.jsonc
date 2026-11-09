@@ -13,12 +13,12 @@
     "directory": ".",
     "binding": "ASSETS"
   },
-  // Private storage for pending submissions. Create a KV namespace named
-  // "wesley-submissions" in the Cloudflare dashboard and paste its ID here.
+  // Private storage for pending submissions (the "wesley-submissions"
+  // KV namespace in the Cloudflare dashboard).
   "kv_namespaces": [
     {
       "binding": "SUBMISSIONS",
-      "id": "PASTE_KV_NAMESPACE_ID_HERE"
+      "id": "4c879512d07e4509851682a1d07289c1"
     }
   ]
   // BOT_KEY is a secret set in the dashboard (Settings > Variables and
