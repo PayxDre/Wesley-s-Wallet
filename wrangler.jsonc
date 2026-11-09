@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wesleywallet",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-07-03",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  // The site's pages and images. Requests that don't match a file
+  // (like /api/...) are handled by worker/index.js.
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  // Private storage for pending submissions. Create a KV namespace named
+  // "wesley-submissions" in the Cloudflare dashboard and paste its ID here.
+  "kv_namespaces": [
+    {
+      "binding": "SUBMISSIONS",
+      "id": "PASTE_KV_NAMESPACE_ID_HERE"
+    }
+  ]
+  // BOT_KEY is a secret set in the dashboard (Settings > Variables and
+  // Secrets), never stored in this file.
+}

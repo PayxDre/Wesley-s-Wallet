@@ -1287,37 +1287,6 @@ a:hover {
     display: none;
 }
 
-.sunset-share {
-    text-align: center;
-    margin-top: 44px;
-}
-
-.sunset-btn {
-    display: inline-block;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #fff;
-    background: linear-gradient(135deg, #e0954f, #c9706a);
-    padding: 14px 34px;
-    border-radius: 999px;
-    box-shadow: 0 8px 22px rgba(201, 112, 106, 0.25);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.sunset-btn:hover {
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(201, 112, 106, 0.32);
-}
-
-.sunset-share .form-note {
-    max-width: 420px;
-    margin: 14px auto 0;
-}
-
 @media (max-width: 600px) {
     .sunset-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; }
     .sunset { border-radius: 5px; }
@@ -1478,6 +1447,95 @@ a:hover {
     .gift { padding: 28px 20px 22px; }
     .gift-body { flex-direction: column; text-align: center; gap: 20px; }
     .gift-steps { text-align: left; display: inline-block; }
+}
+
+/* ---------- Submission forms (shared) ---------- */
+.hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.form-note.form-error {
+    color: #a85a4a;
+}
+
+.memory-form label > span em {
+    text-transform: none;
+    letter-spacing: 0;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.sunset-form {
+    max-width: 560px;
+    margin: 48px auto 0;
+}
+
+.sunset-form-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.6rem;
+    text-align: center;
+    margin: 0;
+}
+
+.sunset-pick {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    border: 1.5px dashed var(--gold-soft);
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(244, 196, 140, 0.18), rgba(201, 112, 106, 0.1));
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.sunset-pick:hover {
+    border-color: var(--gold);
+}
+
+.sunset-pick input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.sunset-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sunset-pick-text {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem !important;
+    font-weight: 500;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase;
+    color: #fff !important;
+    background: linear-gradient(135deg, #e0954f, #c9706a);
+    padding: 12px 26px;
+    border-radius: 999px;
+    box-shadow: 0 8px 22px rgba(201, 112, 106, 0.25);
+    pointer-events: none;
+}
+
+.sunset-form button[type="submit"] {
+    background: linear-gradient(135deg, #e0954f, #c9706a);
+}
+
+.sunset-form button[type="submit"]:hover:not(:disabled) {
+    background: var(--ink);
 }
 
 /* ---------- Site navigation (shared across pages) ---------- */

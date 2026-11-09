@@ -8,11 +8,6 @@ const CONFIG = {
     // Until then the wallet card shows a "being set up" state instead of
     // live numbers. (Earlier test address: bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293)
     walletAddress: null,
-    // Dedicated inbox for Memory Wall and sunset submissions. The family's
-    // review bot reads it and publishes approved items to the repo. Assembled
-    // at runtime so the address isn't plain text in the HTML for scrapers.
-    // Set to null to pause both submission paths.
-    submissionsEmail: ['bank+wesley', 'mail.grokbot.com'].join('@'),
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
@@ -784,61 +779,59 @@ async function loadMemories() {
     });
 }
 
-// Submitting opens the visitor's email app with their name and memory
-// already written, addressed to the submissions inbox. Nothing is posted
-// automatically; approved memories are added to assets/memories.json.
+// Memory Wall submissions go to the site's own /api/memory endpoint
+// (worker/index.js), which stores them privately as pending. The family's
+// review bot approves them and publishes to assets/memories.json.
 function setupMemoryForm() {
     const form = document.getElementById('memory-form');
     if (!form) return;
 
-    if (!CONFIG.submissionsEmail) {
-        const pending = document.createElement('p');
-        pending.className = 'form-pending';
-        pending.textContent = 'Sharing a memory will be open again soon.';
-        form.replaceWith(pending);
-        return;
-    }
-
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = form.elements.name.value.trim();
-        const memory = form.elements.memory.value.trim();
-        if (!name || !memory) return;
-
-        const subject = 'A new memory for Wesley';
-        const body = `Name: ${name}\n\nMemory:\n${memory}\n`;
-        window.location.href =
-            `mailto:${CONFIG.submissionsEmail}` +
-            `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-        // Confirmation, with a fallback for devices that have no email app set up.
-        const done = document.createElement('div');
-        done.className = 'form-success';
-        const lead = document.createElement('p');
-        lead.innerHTML = 'Your email app should now be open with your memory ready. Just press <strong>Send</strong>.';
-        const fallback = document.createElement('p');
-        fallback.className = 'form-fallback';
-        fallback.append('If nothing opened, email your memory to ');
-        const addr = document.createElement('span');
-        addr.className = 'form-address';
-        addr.textContent = CONFIG.submissionsEmail;
-        fallback.append(addr, '.');
-        const copy = document.createElement('button');
-        copy.type = 'button';
-        copy.className = 'gift-copy';
-        copy.textContent = 'Copy my message';
-        copy.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(body);
-                copy.textContent = 'Copied';
-                setTimeout(() => { copy.textContent = 'Copy my message'; }, 2000);
-            } catch (err) {
-                console.warn('copy failed', err);
-            }
-        });
-        done.append(lead, fallback, copy);
-        form.replaceWith(done);
+        const payload = {
+            name: form.elements.name.value,
+            memory: form.elements.memory.value,
+            website: form.elements.website ? form.elements.website.value : '',
+        };
+        await submitToSite(form, '/api/memory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        }, 'Thank you. Your memory has been received and will appear here after a brief review.');
     });
+}
+
+// Shared submit flow: disable the button, send, then swap the form for a
+// thank-you message or show the error under the form.
+async function submitToSite(form, url, options, successText) {
+    const button = form.querySelector('button[type="submit"]');
+    const note = form.querySelector('.form-note');
+    const originalText = button.textContent;
+    const originalNote = note ? note.textContent : '';
+    button.disabled = true;
+    button.textContent = 'Sending…';
+    try {
+        const res = await fetch(url, options);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Sorry, that could not be sent. Please try again in a moment.');
+        const done = document.createElement('p');
+        done.className = 'form-success';
+        done.textContent = successText;
+        form.replaceWith(done);
+    } catch (err) {
+        button.disabled = false;
+        button.textContent = originalText;
+        if (note) {
+            note.textContent = err.message && !/fetch|network/i.test(err.message)
+                ? err.message
+                : 'Sorry, that could not be sent. Please check your connection and try again.';
+            note.classList.add('form-error');
+            setTimeout(() => {
+                note.textContent = originalNote;
+                note.classList.remove('form-error');
+            }, 8000);
+        }
+    }
 }
 
 function openLightbox(src) {
@@ -931,21 +924,7 @@ async function loadSunsets() {
     const grid = document.getElementById('sunset-grid');
     const empty = document.getElementById('sunset-empty');
     const count = document.getElementById('sunset-count');
-    const btn = document.getElementById('sunset-email');
     if (!grid) return;
-
-    if (btn && !CONFIG.submissionsEmail) {
-        const share = btn.closest('.sunset-share');
-        if (share) {
-            share.innerHTML = '<p class="form-note">Sending a sunset will be open again soon.</p>';
-        }
-    } else if (btn) {
-        const subject = encodeURIComponent('A sunset for Wesley');
-        const body = encodeURIComponent(
-            'Attach your sunset photo to this email.\n\nWhere I watched it:\n\nMy name (optional):\n'
-        );
-        btn.href = `mailto:${CONFIG.submissionsEmail}?subject=${subject}&body=${body}`;
-    }
 
     const names = await fetchSunsetList();
     if (!names.length) return;
@@ -1013,6 +992,59 @@ function setupGift() {
     }
 }
 
+// Sunset uploads: the photo is shrunk in the visitor's browser (longest side
+// 2000 px) before sending. Re-drawing it also drops the file's metadata, so
+// GPS location never leaves their device. If the browser can't read the
+// format (e.g. HEIC outside Safari), the original file is sent instead and
+// the review bot cleans it.
+async function shrinkPhoto(file) {
+    try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.86));
+        return blob || file;
+    } catch {
+        return file;
+    }
+}
+
+function setupSunsetForm() {
+    const form = document.getElementById('sunset-form');
+    if (!form) return;
+    const input = form.elements.photo;
+    const preview = document.getElementById('sunset-preview');
+    const pickText = document.getElementById('sunset-pick-text');
+
+    input.addEventListener('change', () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        if (preview) {
+            preview.src = URL.createObjectURL(file);
+            preview.hidden = false;
+            preview.onerror = () => { preview.hidden = true; };
+        }
+        if (pickText) pickText.textContent = 'Change photo';
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const data = new FormData();
+        const photo = await shrinkPhoto(file);
+        data.append('photo', photo, photo === file ? file.name : 'sunset.jpg');
+        data.append('place', form.elements.place.value);
+        data.append('name', form.elements.name.value);
+        data.append('website', form.elements.website.value);
+        await submitToSite(form, '/api/sunset', { method: 'POST', body: data },
+            'Thank you. Your sunset has been received and will join the collage after a quick look.');
+    });
+}
+
 // Decorative floating hearts, bitcoin symbols, and teddy faces behind the
 // content. Built here so every page shares one definition.
 const FLOAT_ITEMS = [
@@ -1061,6 +1093,7 @@ function buildFloatingBackground() {
     setupShareButton();
     setupGift();
     loadSunsets();
+    setupSunsetForm();
     loadLetters();
     loadMemories();
     setupMemoryForm();
