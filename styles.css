@@ -1224,6 +1224,105 @@ a:hover {
     color: var(--sage);
 }
 
+/* ---------- Sunsets for Wesley ---------- */
+.sunsets {
+    background:
+        linear-gradient(180deg, rgba(244, 196, 140, 0.16) 0%, rgba(232, 160, 120, 0.08) 55%, transparent 100%);
+}
+
+.sunset-count {
+    text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--gold);
+    margin: -32px 0 32px;
+}
+
+.sunset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 170px));
+    justify-content: center;
+    gap: 8px;
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+.sunset {
+    margin: 0;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--bg-soft);
+    box-shadow: var(--shadow);
+}
+
+.sunset img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    cursor: zoom-in;
+    transition: transform 0.4s ease;
+}
+
+.sunset:hover img {
+    transform: scale(1.05);
+}
+
+.sunset.is-missing {
+    display: none;
+}
+
+.sunset-empty {
+    text-align: center;
+    color: var(--ink-soft);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.sunset-empty[hidden] {
+    display: none;
+}
+
+.sunset-share {
+    text-align: center;
+    margin-top: 44px;
+}
+
+.sunset-btn {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(135deg, #e0954f, #c9706a);
+    padding: 14px 34px;
+    border-radius: 999px;
+    box-shadow: 0 8px 22px rgba(201, 112, 106, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sunset-btn:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(201, 112, 106, 0.32);
+}
+
+.sunset-share .form-note {
+    max-width: 420px;
+    margin: 14px auto 0;
+}
+
+@media (max-width: 600px) {
+    .sunset-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .sunset { border-radius: 5px; }
+}
+
 /* ---------- Footer ---------- */
 .footer {
     padding: 60px 0 80px;
