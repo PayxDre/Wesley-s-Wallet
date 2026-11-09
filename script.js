@@ -951,6 +951,48 @@ async function loadSunsets() {
     }
 }
 
+// ---------- Add to Wesley's Gift ----------
+// Stays in its "coming soon" state until CONFIG.walletAddress is set,
+// then shows a scannable QR code, a copy button, and send steps.
+function setupGift() {
+    const addr = CONFIG.walletAddress;
+    if (!addr) return;
+    const uri = `bitcoin:${addr}`;
+
+    const qr = document.getElementById('gift-qr');
+    if (qr && typeof qrcode === 'function') {
+        const code = qrcode(0, 'M');
+        // Uppercase bech32 makes a smaller, easier-to-scan code.
+        code.addData(uri.toUpperCase(), 'Alphanumeric');
+        code.make();
+        qr.innerHTML = code.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+        qr.href = uri; // On a phone, tapping opens the visitor's wallet app.
+    }
+
+    const addrEl = document.getElementById('gift-address');
+    if (addrEl) {
+        addrEl.textContent = addr;
+        addrEl.classList.add('is-set');
+    }
+
+    const steps = document.getElementById('gift-steps');
+    if (steps) steps.hidden = false;
+
+    const copy = document.getElementById('gift-copy');
+    if (copy) {
+        copy.hidden = false;
+        copy.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(addr);
+                copy.textContent = 'Copied';
+                setTimeout(() => { copy.textContent = 'Copy address'; }, 2000);
+            } catch (e) {
+                console.warn('copy failed', e);
+            }
+        });
+    }
+}
+
 (async function init() {
     setupIntroFly();
     setAgeLine();
@@ -960,6 +1002,7 @@ async function loadSunsets() {
     setupReveals();
     setupCandle();
     setupShareButton();
+    setupGift();
     loadSunsets();
     loadLetters();
     loadMemories();

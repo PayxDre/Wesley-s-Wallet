@@ -362,6 +362,32 @@
                     </p>
                 </div>
 
+                <div class="gift" id="gift">
+                    <h3 class="gift-heading">Add to Wesley's Gift</h3>
+                    <p class="gift-lede">
+                        Anyone who wishes can add to what Vada, Riley, and Jimmy will one day receive.
+                    </p>
+                    <div class="gift-body">
+                        <a class="gift-qr" id="gift-qr" aria-label="Bitcoin address QR code">
+                            <span class="gift-qr-placeholder">QR code<br />coming soon</span>
+                        </a>
+                        <div class="gift-details">
+                            <p class="gift-label">Bitcoin address</p>
+                            <p class="gift-address" id="gift-address">The gift address will be added here soon.</p>
+                            <button type="button" class="gift-copy" id="gift-copy" hidden>Copy address</button>
+                            <ol class="gift-steps" id="gift-steps" hidden>
+                                <li>Open Cash App, River, or any bitcoin app.</li>
+                                <li>Choose <strong>Send</strong>, then <strong>Bitcoin</strong>.</li>
+                                <li>Scan the code or paste the address.</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <p class="gift-note">
+                        This is a family gift held for Wesley's siblings, not a charity,
+                        so contributions are not tax-deductible.
+                    </p>
+                </div>
+
                 <div class="growth-section">
                     <h3 class="growth-heading">Since he passed</h3>
                     <div class="growth-grid">
@@ -474,6 +500,7 @@
         <img id="lightbox-img" alt="Wesley" />
     </div>
 
+    <script src="assets/vendor/qrcode-generator-1.4.4.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>
 </body>
