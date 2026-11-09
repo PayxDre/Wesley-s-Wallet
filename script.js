@@ -1520,10 +1520,34 @@ async function drawBlendedSunrise(canvas, items, onProgress) {
     return true;
 }
 
+// The family's bot can publish a finished blend (assets/sunrise-blend.json
+// pointing at an image in assets/). When one exists it's shown instead of
+// building the blend in the browser.
+const SUNRISE_BLEND_MANIFEST = 'assets/sunrise-blend.json';
+
+async function drawPublishedBlend(canvas) {
+    let info;
+    try {
+        const res = await fetch(SUNRISE_BLEND_MANIFEST, { cache: 'no-store' });
+        if (!res.ok) return null;
+        info = await res.json();
+    } catch {
+        return null;
+    }
+    if (!info || typeof info.file !== 'string' || !/^[\w.-]+\.(jpe?g|png|webp)$/i.test(info.file)) return null;
+    const img = await loadImageElement(`assets/${info.file}?v=${encodeURIComponent(info.updated || '')}`);
+    if (!img) return null;
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    return info;
+}
+
 function setupSunriseBlend(items) {
     const canvas = document.getElementById('sr-mesh-canvas');
     const status = document.getElementById('sr-blend-status');
     const dl = document.getElementById('sr-mesh-download');
+    const note = document.getElementById('sr-blend-note');
     if (!canvas) return () => {};
 
     dl.addEventListener('click', () => {
@@ -1549,7 +1573,18 @@ function setupSunriseBlend(items) {
         status.hidden = false;
         let ok = false;
         try {
-            ok = await drawBlendedSunrise(canvas, items, (msg) => { status.textContent = msg; });
+            const published = await drawPublishedBlend(canvas);
+            if (published) {
+                ok = true;
+                if (note) {
+                    const n = Number(published.count);
+                    const parts = [n > 0 ? `${n} ${n === 1 ? 'sunrise' : 'sunrises'} blended into one sky` : 'The sunrises shared so far, blended into one sky'];
+                    if (published.updated) parts.push(`updated ${fmtShortDate(published.updated)}`);
+                    note.textContent = `${parts.join(', ')}.`;
+                }
+            } else {
+                ok = await drawBlendedSunrise(canvas, items, (msg) => { status.textContent = msg; });
+            }
         } catch (err) {
             console.error(err);
         }
