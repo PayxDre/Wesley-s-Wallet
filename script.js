@@ -969,10 +969,6 @@ function parseLocalDate(iso) {
     return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
 }
 
-function isoDate(d) {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 function fmtShortDate(iso, withYear = true) {
     const d = parseLocalDate(iso);
     if (!d) return '';
@@ -1105,161 +1101,437 @@ function createSunriseViewer(root, items) {
     };
 }
 
-// ---------- Weekly sunrise blend ----------
-function weekStartIso(iso) {
-    const d = parseLocalDate(iso);
-    if (!d) return null;
-    d.setDate(d.getDate() - d.getDay()); // weeks run Sunday to Saturday
-    return isoDate(d);
-}
+// ---------- Blended sunrise ----------
+// Every shared sunrise becomes one panorama. Each photo is studied first
+// (where its horizon sits, where its sun is, its overall color), then:
+//   1. scaled and shifted so every horizon lands on the same line and each
+//      sun sits in the middle of its own stretch of sky,
+//   2. color-matched part of the way toward the group, so a pink dawn and a
+//      gold one meet halfway instead of clashing,
+//   3. merged with multi-band blending: broad sky colors mix over a wide
+//      area while fine detail (clouds, palms, waves) changes over a short
+//      one, which hides the seams between photos.
+const BLEND_H = 800;
+const BLEND_LEVELS = 8; // pyramid depth; window edges align to 2^levels
 
-function loadImageElement(src) {
+const BLEND_MAX = 24; // beyond this, an even sample across time
+
+function loadImageElement(src, cors) {
     return new Promise((resolve) => {
         const im = new Image();
+        if (cors) im.crossOrigin = 'anonymous';
         im.onload = () => resolve(im);
         im.onerror = () => resolve(null);
         im.src = src;
     });
 }
 
-async function drawSunriseMesh(canvas, list, title, subtitle, labelStrips) {
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#2d2a26';
-    ctx.fillRect(0, 0, W, H);
+// A resized copy keeps downloads small; the proxy allows canvas use. If it
+// can't be reached, fall back to the original on this site.
+async function loadBlendImage(item) {
+    return (await loadImageElement(thumbPhotoURL(item.file, 1400, SUNSET_PATH), true))
+        || loadImageElement(sunriseLocal(item));
+}
 
-    // Same-origin originals keep the canvas exportable for download.
-    const chronological = list.slice().sort((a, b) =>
-        (a.date || '').localeCompare(b.date || '') || a.file.localeCompare(b.file));
-    const images = await Promise.all(chronological.map((it) => loadImageElement(sunriseLocal(it))));
-    const strips = chronological.map((it, i) => ({ it, img: images[i] })).filter((s) => s.img);
+const nextFrame = () => new Promise((r) => setTimeout(r, 0));
 
-    if (!strips.length) {
-        ctx.fillStyle = '#f3ede4';
-        ctx.font = 'italic 40px "Cormorant Garamond", Georgia, serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('These sunrises are still on their way.', W / 2, H / 2);
-        return false;
-    }
-
-    const n = strips.length;
-    const sw = W / n;
-    const feather = Math.min(70, sw * 0.4);
-    strips.forEach(({ img }, i) => {
-        // Each strip overlaps the next one's left edge; the newer strip fades
-        // in over the older one, so neighbors blend without a dark seam.
-        const x0 = i === 0 ? 0 : i * sw - feather;
-        const x1 = i === n - 1 ? W : (i + 1) * sw + feather;
-        const w = Math.ceil(x1 - x0);
-        const t = document.createElement('canvas');
-        t.width = w;
-        t.height = H;
-        const tc = t.getContext('2d');
-        const scale = Math.max(w / img.width, H / img.height);
-        const dw = img.width * scale;
-        const dh = img.height * scale;
-        tc.drawImage(img, (w - dw) / 2, (H - dh) / 2, dw, dh);
-        if (i > 0) {
-            // One fill across the whole strip: 'destination-in' clears
-            // anything outside the filled area, so the fade and the solid
-            // part must be a single gradient.
-            tc.globalCompositeOperation = 'destination-in';
-            const g = tc.createLinearGradient(0, 0, w, 0);
-            g.addColorStop(0, 'rgba(0,0,0,0)');
-            g.addColorStop(Math.min(1, (2 * feather) / w), 'rgba(0,0,0,1)');
-            g.addColorStop(1, 'rgba(0,0,0,1)');
-            tc.fillStyle = g;
-            tc.fillRect(0, 0, w, H);
+// Study a photo on a small copy: horizon height, sun position, color stats.
+function analyzeSunrise(img) {
+    const w = 240;
+    const h = Math.max(60, Math.round((img.height / img.width) * w));
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, w, h);
+    const d = ctx.getImageData(0, 0, w, h).data;
+    const lum = new Float32Array(w * h);
+    const mean = [0, 0, 0];
+    const sq = [0, 0, 0];
+    for (let i = 0, p = 0; i < w * h; i++, p += 4) {
+        lum[i] = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
+        for (let k = 0; k < 3; k++) {
+            mean[k] += d[p + k];
+            sq[k] += d[p + k] * d[p + k];
         }
-        ctx.drawImage(t, x0, 0);
-    });
-
-    // Caption band.
-    const band = ctx.createLinearGradient(0, H * 0.62, 0, H);
-    band.addColorStop(0, 'rgba(20,16,12,0)');
-    band.addColorStop(1, 'rgba(20,16,12,0.72)');
-    ctx.fillStyle = band;
-    ctx.fillRect(0, H * 0.62, W, H * 0.38);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#fffaf2';
-    ctx.font = 'italic 64px "Cormorant Garamond", Georgia, serif';
-    ctx.fillText(title, W / 2, H - 92);
-    ctx.font = '500 24px Inter, Arial, sans-serif';
-    ctx.fillStyle = 'rgba(255,250,242,0.88)';
-    ctx.fillText(subtitle, W / 2, H - 48);
-
-    if (labelStrips) {
-        ctx.font = '600 20px Inter, Arial, sans-serif';
-        ctx.shadowColor = 'rgba(0,0,0,0.55)';
-        ctx.shadowBlur = 8;
-        strips.forEach(({ it }, i) => {
-            const d = parseLocalDate(it.date);
-            const day = d ? d.toLocaleDateString('en-US', { weekday: 'short' }) : '';
-            const label = [day, it.place].filter(Boolean).join(' · ');
-            ctx.fillStyle = '#fffaf2';
-            ctx.fillText(label, i * sw + sw / 2, 46, sw - 16);
-        });
-        ctx.shadowBlur = 0;
     }
+    const n = w * h;
+    const std = [0, 1, 2].map((k) => Math.sqrt(Math.max(1, sq[k] / n - (mean[k] / n) ** 2)));
+    for (let k = 0; k < 3; k++) mean[k] /= n;
+
+    // Horizon: the row with the strongest edge running across most of the
+    // photo. Using a low percentile across columns means a palm tree or a
+    // person in one spot can't win; a long straight sea or land line does.
+    let best = 0;
+    let horizon = 0.6;
+    const g = new Float32Array(w);
+    for (let y = Math.max(1, Math.round(h * 0.2)); y < Math.round(h * 0.88); y++) {
+        for (let x = 0; x < w; x++) g[x] = Math.abs(lum[(y - 1) * w + x] - lum[Math.min(h - 1, y + 1) * w + x]);
+        g.sort();
+        const score = g[Math.floor(w * 0.4)];
+        if (score > best) { best = score; horizon = y / h; }
+    }
+    if (best < 3) horizon = 0.6; // no clear horizon (all sky, or fog)
+
+    // Sun: the brightest column in the band of sky just above the horizon.
+    const top = Math.max(0, Math.round((horizon - 0.4) * h));
+    const bottom = Math.max(top + 1, Math.round(horizon * h));
+    const cols = new Float32Array(w);
+    for (let x = 0; x < w; x++) {
+        let s = 0;
+        for (let y = top; y < bottom; y++) s += (lum[y * w + x] / 255) ** 4;
+        cols[x] = s;
+    }
+    let sunX = 0.5;
+    let peak = 0;
+    let avg = 0;
+    for (let x = 0; x < w; x++) {
+        let s = 0;
+        for (let j = -4; j <= 4; j++) s += cols[Math.min(w - 1, Math.max(0, x + j))];
+        avg += s / w;
+        if (s > peak) { peak = s; sunX = x / w; }
+    }
+    if (peak < avg * 1.4) sunX = 0.5; // no distinct sun: keep it centered
+
+    return { horizon, sunX, mean, std };
+}
+
+// Draw a photo into a window canvas, stretching its edge pixels outward
+// wherever it doesn't reach (those areas carry almost no weight in the blend).
+function drawCovering(ctx, img, dx, dy, dw, dh, ww, wh) {
+    ctx.drawImage(img, dx, dy, dw, dh);
+    const cv = ctx.canvas;
+    const l = Math.max(0, Math.ceil(dx));
+    const r = Math.min(ww, Math.floor(dx + dw));
+    if (l > 0) ctx.drawImage(cv, l, 0, 1, wh, 0, 0, l, wh);
+    if (r < ww) ctx.drawImage(cv, r - 1, 0, 1, wh, r, 0, ww - r, wh);
+    const t = Math.max(0, Math.ceil(dy));
+    const b = Math.min(wh, Math.floor(dy + dh));
+    if (t > 0) ctx.drawImage(cv, 0, t, ww, 1, 0, 0, ww, t);
+    if (b < wh) ctx.drawImage(cv, 0, b - 1, ww, 1, 0, b, ww, wh - b);
+}
+
+// Pyramid helpers on interleaved Float32Arrays with `ch` channels.
+function pyrReduce(src, w, h, ch) {
+    const w2 = Math.ceil(w / 2);
+    const h2 = Math.ceil(h / 2);
+    const kx = [1, 4, 6, 4, 1];
+    const tmp = new Float32Array(w2 * h * ch);
+    for (let y = 0; y < h; y++) {
+        const row = y * w;
+        for (let x2 = 0; x2 < w2; x2++) {
+            const o = (y * w2 + x2) * ch;
+            for (let j = -2; j <= 2; j++) {
+                const p = (row + Math.min(w - 1, Math.max(0, x2 * 2 + j))) * ch;
+                const f = kx[j + 2] / 16;
+                for (let k = 0; k < ch; k++) tmp[o + k] += src[p + k] * f;
+            }
+        }
+    }
+    const out = new Float32Array(w2 * h2 * ch);
+    for (let y2 = 0; y2 < h2; y2++) {
+        for (let j = -2; j <= 2; j++) {
+            const yy = Math.min(h - 1, Math.max(0, y2 * 2 + j));
+            const f = kx[j + 2] / 16;
+            const si = yy * w2 * ch;
+            const oi = y2 * w2 * ch;
+            for (let q = 0; q < w2 * ch; q++) out[oi + q] += tmp[si + q] * f;
+        }
+    }
+    return out;
+}
+
+// Bilinear upsample of an RGB (w2 x h2) level to (w x h), added into or
+// subtracted from `dst` (sign = +1 or -1).
+function pyrExpandInto(src, w2, h2, dst, w, h, sign) {
+    for (let y = 0; y < h; y++) {
+        const sy = Math.min(h2 - 1, y / 2);
+        const y0 = Math.floor(sy);
+        const y1 = Math.min(h2 - 1, y0 + 1);
+        const fy = sy - y0;
+        for (let x = 0; x < w; x++) {
+            const sx = Math.min(w2 - 1, x / 2);
+            const x0 = Math.floor(sx);
+            const x1 = Math.min(w2 - 1, x0 + 1);
+            const fx = sx - x0;
+            const a = (y0 * w2 + x0) * 3, b = (y0 * w2 + x1) * 3;
+            const c = (y1 * w2 + x0) * 3, e = (y1 * w2 + x1) * 3;
+            const o = (y * w + x) * 3;
+            for (let k = 0; k < 3; k++) {
+                const top = src[a + k] + (src[b + k] - src[a + k]) * fx;
+                const bot = src[c + k] + (src[e + k] - src[c + k]) * fx;
+                dst[o + k] += sign * (top + (bot - top) * fy);
+            }
+        }
+    }
+}
+
+// Find where two neighboring photos should meet: a top-to-bottom path
+// through their overlap that runs where they already look alike and
+// avoids crossing edges (trees, roofs, people). Returns an x per row.
+function findSeam(A, B, center, half, H) {
+    const zx0 = Math.max(A.x0, B.x0, Math.round(center - half));
+    const zx1 = Math.min(A.x0 + A.ww, B.x0 + B.ww, Math.round(center + half));
+    const zw = zx1 - zx0;
+    const seam = new Int32Array(H);
+    if (zw < 3) { seam.fill(Math.round(center)); return seam; }
+    const px = (I, gx, y) => (y * I.ww + (gx - I.x0)) * 3;
+    const edge = (I, gx, y) => {
+        const l = px(I, Math.max(I.x0, gx - 1), y);
+        const r = px(I, Math.min(I.x0 + I.ww - 1, gx + 1), y);
+        const u = px(I, gx, Math.max(0, y - 1));
+        const d = px(I, gx, Math.min(H - 1, y + 1));
+        let s = 0;
+        for (let k = 0; k < 3; k++) s += Math.abs(I.data[r + k] - I.data[l + k]) + Math.abs(I.data[d + k] - I.data[u + k]);
+        return s;
+    };
+    const cost = new Float32Array(zw * H);
+    let total = 0;
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < zw; x++) {
+            const gx = zx0 + x;
+            const a = px(A, gx, y);
+            const b = px(B, gx, y);
+            let d = 0;
+            for (let k = 0; k < 3; k++) d += Math.abs(A.data[a + k] - B.data[b + k]);
+            const c = d + 1.5 * (edge(A, gx, y) + edge(B, gx, y));
+            cost[y * zw + x] = c;
+            total += c;
+        }
+    }
+    // Gentle pull toward the middle so seams don't all bunch at one side.
+    const pull = (total / (zw * H)) * 0.6;
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < zw; x++) {
+            const t = (zx0 + x - center) / half;
+            cost[y * zw + x] += pull * t * t;
+        }
+    }
+    const acc = new Float32Array(zw * H);
+    const from = new Int8Array(zw * H);
+    for (let x = 0; x < zw; x++) acc[x] = cost[x];
+    for (let y = 1; y < H; y++) {
+        for (let x = 0; x < zw; x++) {
+            let best = acc[(y - 1) * zw + x];
+            let dir = 0;
+            if (x > 0 && acc[(y - 1) * zw + x - 1] < best) { best = acc[(y - 1) * zw + x - 1]; dir = -1; }
+            if (x < zw - 1 && acc[(y - 1) * zw + x + 1] < best) { best = acc[(y - 1) * zw + x + 1]; dir = 1; }
+            acc[y * zw + x] = best + cost[y * zw + x];
+            from[y * zw + x] = dir;
+        }
+    }
+    let x = 0;
+    for (let i = 1; i < zw; i++) if (acc[(H - 1) * zw + i] < acc[(H - 1) * zw + x]) x = i;
+    for (let y = H - 1; y >= 0; y--) {
+        seam[y] = zx0 + x;
+        x += from[y * zw + x];
+    }
+    return seam;
+}
+
+async function drawBlendedSunrise(canvas, items, onProgress) {
+    // Oldest on the left, newest on the right.
+    const all = items.slice().sort((a, b) =>
+        (a.date || '').localeCompare(b.date || '') || a.file.localeCompare(b.file));
+    const list = all.length <= BLEND_MAX ? all
+        : Array.from({ length: BLEND_MAX }, (_, i) => all[Math.round((i * (all.length - 1)) / (BLEND_MAX - 1))]);
+
+    onProgress('Gathering sunrises…');
+    const loaded = await Promise.all(list.map(loadBlendImage));
+    const photos = loaded.filter(Boolean).map((img) => ({ img, ...analyzeSunrise(img) }));
+    const n = photos.length;
+    const ctx = canvas.getContext('2d');
+    if (!n) return false;
+
+    const align = 2 ** BLEND_LEVELS;
+    const H = BLEND_H;
+    const W = Math.ceil(Math.min(2880, Math.max(1440, n * 300)) / align) * align;
+    const slot = W / n;
+
+    // Shared horizon line: the typical one, so photos move as little as possible.
+    const hs = photos.map((p) => p.horizon).sort((a, b) => a - b);
+    const targetY = Math.min(0.7, Math.max(0.45, hs[Math.floor(n / 2)])) * H;
+
+    // Group color the photos are nudged toward.
+    const strength = n > 1 ? 0.5 : 0;
+    const gMean = [0, 1, 2].map((k) => photos.reduce((s, p) => s + p.mean[k], 0) / n);
+    const gStd = [0, 1, 2].map((k) => photos.reduce((s, p) => s + p.std[k], 0) / n);
+
+    // Place one photo in its stretch of the panorama, color-matched.
+    const reach = Math.ceil(slot / 2 + align);
+    function prepare(i) {
+        const p = photos[i];
+        const c = (i + 0.5) * slot;
+        const x0 = Math.max(0, Math.floor((c - reach) / align) * align);
+        const x1 = Math.min(W, Math.ceil((c + reach) / align) * align);
+        const ww = x1 - x0;
+
+        // Scale so the horizon lands on the shared line and the photo fills
+        // the height, and is wide enough to cover its stretch and the seams.
+        const iw = p.img.width;
+        const ih = p.img.height;
+        const core = Math.min(ww, slot * 2);
+        let s = Math.max(H / ih, targetY / (p.horizon * ih), (H - targetY) / ((1 - p.horizon) * ih), core / iw);
+        s = Math.min(s, (H / ih) * 2.6); // never zoom in more than this
+        const dw = iw * s;
+        const dh = ih * s;
+        const dy = targetY - p.horizon * dh;
+        const cl = c - x0;
+        let dx = cl - p.sunX * dw; // put the sun in the middle of its stretch
+        if (dw >= core) dx = Math.min(cl - core / 2, Math.max(cl + core / 2 - dw, dx));
+        else dx = cl - dw / 2;
+
+        const wc = document.createElement('canvas');
+        wc.width = ww;
+        wc.height = H;
+        const wctx = wc.getContext('2d', { willReadFrequently: true });
+        wctx.imageSmoothingQuality = 'high';
+        drawCovering(wctx, p.img, dx, dy, dw, dh, ww, H);
+        const px = wctx.getImageData(0, 0, ww, H).data;
+
+        const gain = [0, 1, 2].map((k) => {
+            const ratio = Math.min(1.4, Math.max(0.7, gStd[k] / p.std[k]));
+            return 1 + (ratio - 1) * strength;
+        });
+        const shift = [0, 1, 2].map((k) => p.mean[k] + (gMean[k] - p.mean[k]) * strength);
+        const data = new Float32Array(ww * H * 3);
+        for (let q = 0, o = 0; q < px.length; q += 4, o += 3) {
+            for (let k = 0; k < 3; k++) data[o + k] = (px[q + k] - p.mean[k]) * gain[k] + shift[k];
+        }
+        return { x0, ww, data };
+    }
+
+    // Result pyramid plus the total weight at each pixel of each level.
+    const dims = [];
+    for (let l = 0, w = W, h = H; l <= BLEND_LEVELS; l++, w = Math.ceil(w / 2), h = Math.ceil(h / 2)) dims.push([w, h]);
+    const result = dims.map(([w, h]) => new Float32Array(w * h * 3));
+    const weight = dims.map(([w, h]) => new Float32Array(w * h));
+
+    // Add one photo's detail bands, each masked by its own softened region.
+    function addPhoto(I, seamL, seamR) {
+        const r = 3; // a few pixels of cross-fade right at the seam
+        let m = new Float32Array(I.ww * H);
+        for (let y = 0; y < H; y++) {
+            for (let x = 0; x < I.ww; x++) {
+                const gx = I.x0 + x + 0.5;
+                const a = seamL ? Math.min(1, Math.max(0, (gx - seamL[y] + r) / (2 * r))) : 1;
+                const b = seamR ? Math.min(1, Math.max(0, (seamR[y] - gx + r) / (2 * r))) : 1;
+                m[y * I.ww + x] = a * b;
+            }
+        }
+        let g = I.data;
+        let w = I.ww;
+        let h = H;
+        let lx0 = I.x0;
+        for (let l = 0; l <= BLEND_LEVELS; l++) {
+            let next = null;
+            let w2 = 0;
+            let h2 = 0;
+            if (l < BLEND_LEVELS) {
+                next = pyrReduce(g, w, h, 3);
+                w2 = Math.ceil(w / 2);
+                h2 = Math.ceil(h / 2);
+                pyrExpandInto(next, w2, h2, g, w, h, -1); // g is now this level's detail
+            }
+            const [RW] = dims[l];
+            const R = result[l];
+            const Wt = weight[l];
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const mv = m[y * w + x];
+                    if (mv < 1e-6) continue;
+                    const o = (y * w + x) * 3;
+                    const ri = y * RW + lx0 + x;
+                    R[ri * 3] += g[o] * mv; R[ri * 3 + 1] += g[o + 1] * mv; R[ri * 3 + 2] += g[o + 2] * mv;
+                    Wt[ri] += mv;
+                }
+            }
+            if (l < BLEND_LEVELS) {
+                m = pyrReduce(m, w, h, 1);
+                g = next;
+                w = w2;
+                h = h2;
+                lx0 /= 2;
+            }
+        }
+    }
+
+    let cur = prepare(0);
+    let seamL = null;
+    for (let i = 0; i < n; i++) {
+        onProgress(`Blending sunrise ${i + 1} of ${n}…`);
+        await nextFrame();
+        const next = i + 1 < n ? prepare(i + 1) : null;
+        const seamR = next ? findSeam(cur, next, (i + 1) * slot, Math.min(slot * 0.45, 360), H) : null;
+        addPhoto(cur, seamL, seamR);
+        seamL = seamR;
+        cur = next;
+    }
+
+    // Collapse the pyramid back into one picture.
+    onProgress('Finishing…');
+    await nextFrame();
+    result.forEach((R, l) => {
+        const Wt = weight[l];
+        for (let i = 0; i < Wt.length; i++) {
+            const f = Wt[i] > 1e-6 ? 1 / Wt[i] : 0;
+            R[i * 3] *= f; R[i * 3 + 1] *= f; R[i * 3 + 2] *= f;
+        }
+    });
+    for (let l = BLEND_LEVELS - 1; l >= 0; l--) {
+        const [w, h] = dims[l];
+        const [w2, h2] = dims[l + 1];
+        pyrExpandInto(result[l + 1], w2, h2, result[l], w, h, 1);
+    }
+    const out = result[0];
+    canvas.width = W;
+    canvas.height = H;
+    const image = ctx.createImageData(W, H);
+    const od = image.data;
+    for (let q = 0, o = 0; q < od.length; q += 4, o += 3) {
+        od[q] = out[o]; od[q + 1] = out[o + 1]; od[q + 2] = out[o + 2]; od[q + 3] = 255;
+    }
+    ctx.putImageData(image, 0, 0);
+
+    // A soft vignette and a quiet caption.
+    const v = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.3, W / 2, H * 0.55, Math.max(W, H) * 0.75);
+    v.addColorStop(0, 'rgba(20,16,12,0)');
+    v.addColorStop(1, 'rgba(20,16,12,0.32)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, W, H);
+    const band = ctx.createLinearGradient(0, H * 0.7, 0, H);
+    band.addColorStop(0, 'rgba(20,16,12,0)');
+    band.addColorStop(1, 'rgba(20,16,12,0.55)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, H * 0.7, W, H * 0.3);
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#fffaf2';
+    ctx.font = 'italic 60px "Cormorant Garamond", Georgia, serif';
+    ctx.fillText('Sunrises for Wesley', W / 2, H - 84);
+    ctx.font = '500 22px Inter, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,250,242,0.88)';
+    const total = Math.max(all.length, n);
+    const line = n === 1 ? 'The first sunrise, with more to come'
+        : `${n < total ? `${n} of ${total}` : n} sunrises, blended into one`;
+    ctx.fillText(line, W / 2, H - 44);
+    ctx.shadowBlur = 0;
     return true;
 }
 
-function setupSunriseMesh(items) {
+function setupSunriseBlend(items) {
     const canvas = document.getElementById('sr-mesh-canvas');
-    const label = document.getElementById('sr-mesh-label');
-    const prev = document.getElementById('sr-mesh-prev');
-    const next = document.getElementById('sr-mesh-next');
-    const allBtn = document.getElementById('sr-mesh-all');
+    const status = document.getElementById('sr-blend-status');
     const dl = document.getElementById('sr-mesh-download');
     if (!canvas) return () => {};
 
-    const weeks = [...new Set(items.map((it) => weekStartIso(it.date)).filter(Boolean))]
-        .sort().reverse();
-    let weekIdx = 0;
-    let showAll = false;
-    let drawing = 0;
-
-    async function render() {
-        const run = ++drawing;
-        let list;
-        let subtitle;
-        let fileTag;
-        if (showAll || !weeks.length) {
-            list = items.slice(0, 60);
-            subtitle = `All ${items.length} ${items.length === 1 ? 'sunrise' : 'sunrises'}`;
-            label.textContent = 'All sunrises';
-            fileTag = 'all';
-        } else {
-            const start = weeks[weekIdx];
-            const end = parseLocalDate(start);
-            end.setDate(end.getDate() + 6);
-            list = items.filter((it) => weekStartIso(it.date) === start);
-            const range = `${fmtShortDate(start, false)} – ${fmtShortDate(isoDate(end))}`;
-            label.textContent = `Week of ${range}`;
-            subtitle = `Week of ${range} · ${list.length} ${list.length === 1 ? 'sunrise' : 'sunrises'}`;
-            fileTag = `week-of-${start}`;
-        }
-        prev.disabled = showAll || weekIdx >= weeks.length - 1;
-        next.disabled = showAll || weekIdx <= 0;
-        allBtn.textContent = showAll ? 'By week' : 'All sunrises';
-        dl.dataset.file = `sunrises-for-wesley-${fileTag}.jpg`;
-        dl.disabled = true;
-        const ok = await drawSunriseMesh(canvas, list, 'Sunrises for Wesley', subtitle,
-            !showAll && list.length <= 7);
-        if (run === drawing) dl.disabled = !ok;
-    }
-
-    prev.addEventListener('click', () => { weekIdx += 1; render(); });
-    next.addEventListener('click', () => { weekIdx -= 1; render(); });
-    allBtn.addEventListener('click', () => { showAll = !showAll; render(); });
     dl.addEventListener('click', () => {
         canvas.toBlob((blob) => {
             if (!blob) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = dl.dataset.file || 'sunrises-for-wesley.jpg';
+            a.download = 'sunrises-for-wesley.jpg';
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -1268,12 +1540,23 @@ function setupSunriseMesh(items) {
     });
 
     let started = false;
-    // Drawn only when the tab is first opened: it loads every photo in full.
-    return () => {
-        if (!started) {
-            started = true;
-            render();
+    // Built only when the tab is first opened: it loads every photo in full.
+    return async () => {
+        if (started) return;
+        started = true;
+        dl.disabled = true;
+        canvas.hidden = true;
+        status.hidden = false;
+        let ok = false;
+        try {
+            ok = await drawBlendedSunrise(canvas, items, (msg) => { status.textContent = msg; });
+        } catch (err) {
+            console.error(err);
         }
+        canvas.hidden = !ok;
+        status.hidden = ok;
+        if (!ok) status.textContent = 'The blended sunrise could not be made right now.';
+        dl.disabled = !ok;
     };
 }
 
@@ -1343,8 +1626,8 @@ async function loadSunsets() {
     const inlineViewer = createSunriseViewer(document.getElementById('sr-inline'), items);
     inlineViewer.show(0);
 
-    // Weekly blend
-    const startMesh = setupSunriseMesh(items);
+    // Blended sunrise
+    const startMesh = setupSunriseBlend(items);
 
     // View tabs
     const views = document.getElementById('sr-views');

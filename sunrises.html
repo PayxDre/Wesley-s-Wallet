@@ -59,7 +59,7 @@
                 <div class="sr-views" id="sr-views" role="tablist" aria-label="Ways to view the sunrises" hidden>
                     <button type="button" class="sr-tab is-active" data-view="collage" role="tab" aria-selected="true">Collage</button>
                     <button type="button" class="sr-tab" data-view="single" role="tab" aria-selected="false">One at a time</button>
-                    <button type="button" class="sr-tab" data-view="mesh" role="tab" aria-selected="false">Weekly sunrise</button>
+                    <button type="button" class="sr-tab" data-view="mesh" role="tab" aria-selected="false">Blended sunrise</button>
                 </div>
 
                 <div class="sr-panel" data-panel="collage">
@@ -71,19 +71,17 @@
                 </div>
 
                 <div class="sr-panel" data-panel="mesh" hidden>
-                    <div class="sr-mesh-nav">
-                        <button type="button" class="sr-round" id="sr-mesh-prev" aria-label="Earlier week">&#8249;</button>
-                        <span class="sr-mesh-label" id="sr-mesh-label"></span>
-                        <button type="button" class="sr-round" id="sr-mesh-next" aria-label="Later week">&#8250;</button>
-                    </div>
                     <div class="sr-mesh-frame">
-                        <canvas id="sr-mesh-canvas" width="1600" height="900" aria-label="This week's sunrises blended into one image"></canvas>
+                        <p class="sr-blend-status" id="sr-blend-status" hidden>Gathering sunrises…</p>
+                        <canvas id="sr-mesh-canvas" width="1440" height="800" aria-label="Every shared sunrise blended into one picture" hidden></canvas>
                     </div>
                     <div class="sr-mesh-actions">
-                        <button type="button" class="sr-chip" id="sr-mesh-all">All sunrises</button>
-                        <button type="button" class="sr-chip" id="sr-mesh-download">Download image</button>
+                        <button type="button" class="sr-chip" id="sr-mesh-download" disabled>Download image</button>
                     </div>
-                    <p class="form-note">Each week's sunrises, side by side and softly blended into one.</p>
+                    <p class="form-note">
+                        The sunrises shared so far, lined up along one horizon and softly
+                        blended into a single sky, oldest on the left and newest on the right.
+                    </p>
                 </div>
 
                 <p class="sunset-empty" id="sunset-empty">The first sunrises will appear here soon.</p>
