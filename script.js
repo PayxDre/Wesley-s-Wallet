@@ -407,45 +407,217 @@ async function loadGallery() {
         names = names.filter((n) => n !== featuredName);
     }
 
-    // Sort by a stable hash of the filename so consecutive shutter frames
-    // (e.g. IMG_2560 and IMG_3580) don't end up next to each other.
-    names.sort((a, b) => stableHash(a) - stableHash(b));
-
     if (!names.length) {
         if (empty) empty.hidden = false;
         return;
     }
 
-    grid.innerHTML = '';
-    names.forEach((name) => {
-        const figure = document.createElement('figure');
-        figure.className = 'photo';
-        let element;
-        if (VIDEO_RX.test(name)) {
-            figure.classList.add('photo--video');
-            element = document.createElement('video');
-            element.src = `assets/photos/${encodeURIComponent(name)}`;
-            element.autoplay = true;
-            element.loop = true;
-            element.muted = true;
-            element.defaultMuted = true;
-            element.playsInline = true;
-            element.setAttribute('muted', '');
-            element.setAttribute('playsinline', '');
-            element.preload = 'auto';
-            const posterName = findPosterFor(name, posters);
-            if (posterName) element.poster = `assets/photos/${encodeURIComponent(posterName)}`;
-            element.addEventListener('error', () => figure.classList.add('is-missing'));
-        } else {
-            element = document.createElement('img');
-            element.alt = 'Wesley';
-            element.loading = 'lazy';
-            setImageWithFallback(element, name, 700, figure);
-            element.addEventListener('click', () => openLightbox(localPhotoURL(name)));
-        }
-        figure.appendChild(element);
-        grid.appendChild(figure);
+    // A stable starting order, then each tile is placed next to photos that
+    // look as different from it as possible (see placeGallery).
+    names.sort((a, b) => stableHash(a) - stableHash(b));
+    const items = names.map((name) => {
+        const video = VIDEO_RX.test(name);
+        return { name, video, poster: video ? findPosterFor(name, posters) : null };
     });
+
+    const count = document.getElementById('photo-count');
+    if (count) {
+        const v = items.filter((it) => it.video).length;
+        const p = items.length - v;
+        const parts = [];
+        if (p) parts.push(`${p} ${p === 1 ? 'photo' : 'photos'}`);
+        if (v) parts.push(`${v} ${v === 1 ? 'video' : 'videos'}`);
+        count.textContent = parts.join(' and ');
+        count.hidden = false;
+    }
+
+    await addPhotoSignatures(items);
+    items.forEach((it) => { it.figure = makePhotoTile(it); });
+
+    let columns = 0;
+    const layout = () => {
+        const n = grid.clientWidth >= 640 ? 3 : 2;
+        if (n === columns) return;
+        columns = n;
+        placeGallery(grid, items, n);
+    };
+    layout();
+    let t;
+    window.addEventListener('resize', () => {
+        clearTimeout(t);
+        t = setTimeout(layout, 150);
+    });
+}
+
+// ----- Keeping look-alike photos apart -----
+// Each photo gets a tiny color "fingerprint" (a 6x6 grid of average
+// colors, from a 48px copy) plus its shape. Fingerprints are cached so
+// return visits don't fetch them again.
+const PHOTO_SIG_KEY = 'wesley-photo-sigs-v1';
+
+function readSigCache() {
+    try { return JSON.parse(localStorage.getItem(PHOTO_SIG_KEY)) || {}; } catch { return {}; }
+}
+
+function photoSignature(name) {
+    return new Promise((resolve) => {
+        const im = new Image();
+        im.crossOrigin = 'anonymous';
+        const timer = setTimeout(() => resolve(null), 4000);
+        im.onload = () => {
+            clearTimeout(timer);
+            const ratio = im.naturalHeight / im.naturalWidth;
+            try {
+                const c = document.createElement('canvas');
+                c.width = 6;
+                c.height = 6;
+                const x = c.getContext('2d', { willReadFrequently: true });
+                x.imageSmoothingQuality = 'high';
+                x.drawImage(im, 0, 0, 6, 6);
+                const d = x.getImageData(0, 0, 6, 6).data;
+                const sig = [];
+                for (let i = 0; i < d.length; i += 4) sig.push(d[i], d[i + 1], d[i + 2]);
+                resolve({ ratio, sig });
+            } catch {
+                resolve({ ratio, sig: null });
+            }
+        };
+        im.onerror = () => { clearTimeout(timer); resolve(null); };
+        im.src = thumbPhotoURL(name, 48);
+    });
+}
+
+async function addPhotoSignatures(items) {
+    const cache = readSigCache();
+    await Promise.all(items.map(async (it) => {
+        const source = it.video ? it.poster : it.name;
+        if (!source) return;
+        let s = cache[source];
+        if (!s) {
+            s = await photoSignature(source);
+            if (s && s.sig) cache[source] = s;
+        }
+        if (s) { it.ratio = s.ratio; it.sig = s.sig; }
+    }));
+    try { localStorage.setItem(PHOTO_SIG_KEY, JSON.stringify(cache)); } catch { /* private mode */ }
+}
+
+// Photos from the same shoot have neighboring file numbers (DSC07302,
+// DSC07320). Treat those as alike even when their colors differ.
+function shootCloseness(a, b) {
+    const ma = a.match(/^([a-z_-]*?)(\d{3,})/i);
+    const mb = b.match(/^([a-z_-]*?)(\d{3,})/i);
+    if (!ma || !mb || ma[1].toLowerCase() !== mb[1].toLowerCase()) return 0;
+    const gap = Math.abs(parseInt(ma[2], 10) - parseInt(mb[2], 10));
+    return Math.max(0, 1 - gap / 300);
+}
+
+function photoDistance(a, b) {
+    let visual = 0.25; // unknown: assume moderately different
+    if (a.sig && b.sig) {
+        let s = 0;
+        for (let i = 0; i < a.sig.length; i++) s += Math.abs(a.sig[i] - b.sig[i]);
+        visual = s / a.sig.length / 255;
+    }
+    let d = visual * (1 - 0.75 * shootCloseness(a.name, b.name));
+    if (a.video && b.video) d *= 0.6; // spread the videos out too
+    return d;
+}
+
+const PHOTO_VARIANTS = 8;
+const isCircleVariant = (v) => v === 3 || v === 7;
+
+// Masonry by hand: each next tile goes into the shortest column, and the
+// photo chosen for that spot is the one least like its neighbors (the
+// tile above it and the tiles beside it in the next columns).
+function placeGallery(grid, items, n) {
+    grid.innerHTML = '';
+    const cols = Array.from({ length: n }, () => {
+        const col = document.createElement('div');
+        col.className = 'photo-col';
+        grid.appendChild(col);
+        return { el: col, height: 0, tiles: [] };
+    });
+    const remaining = items.slice();
+    const order = [];
+    while (remaining.length) {
+        let c = 0;
+        cols.forEach((col, i) => { if (col.height < cols[c].height - 0.01) c = i; });
+        const variant = (order.length % PHOTO_VARIANTS) + 1;
+        const top = cols[c].height;
+        let best = 0;
+        let bestScore = -1;
+        remaining.forEach((it, k) => {
+            const h = isCircleVariant(variant) ? 1 : (it.ratio || 1.25);
+            // Everything within about a screen's reach counts, the closest
+            // tiles most: the one right above, then side by side, then
+            // further across or further up.
+            let score = 1;
+            cols.forEach((col, ci) => {
+                col.tiles.forEach((t) => {
+                    const gapY = Math.max(0, top - t.bottom, t.top - (top + h));
+                    if (gapY > 1.2) return;
+                    const across = Math.abs(ci - c);
+                    const reach = 1 + 0.45 * Math.max(0, across - 1) + 0.6 * gapY + (across ? 0.1 : 0);
+                    score = Math.min(score, photoDistance(it, t.item) * reach);
+                });
+            });
+            if (score > bestScore + 1e-9) { bestScore = score; best = k; }
+        });
+        const it = remaining.splice(best, 1)[0];
+        const h = isCircleVariant(variant) ? 1 : (it.ratio || 1.25);
+        cols[c].tiles.push({ item: it, top, bottom: top + h });
+        cols[c].height = top + h + 0.08;
+        it.figure.className = `photo v${variant}${it.video ? ' photo--video' : ''}`;
+        it.index = order.length;
+        order.push(it);
+        cols[c].el.appendChild(it.figure);
+    }
+    galleryOrder = order;
+}
+
+let galleryOrder = [];
+
+function makePhotoTile(it) {
+    const figure = document.createElement('figure');
+    figure.tabIndex = 0;
+    figure.setAttribute('role', 'button');
+    let element;
+    if (it.video) {
+        element = document.createElement('video');
+        element.src = localPhotoURL(it.name);
+        element.autoplay = true;
+        element.loop = true;
+        element.muted = true;
+        element.defaultMuted = true;
+        element.playsInline = true;
+        element.setAttribute('muted', '');
+        element.setAttribute('playsinline', '');
+        element.preload = 'metadata';
+        if (it.poster) element.poster = localPhotoURL(it.poster);
+        element.addEventListener('error', () => figure.classList.add('is-missing'));
+        figure.setAttribute('aria-label', 'Play this video of Wesley');
+    } else {
+        element = document.createElement('img');
+        element.alt = 'Wesley';
+        element.loading = 'lazy';
+        setImageWithFallback(element, it.name, 700, figure);
+        figure.setAttribute('aria-label', 'View this photo of Wesley');
+    }
+    const open = () => openPhotoViewer(it.index);
+    figure.addEventListener('click', open);
+    figure.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+    });
+    figure.appendChild(element);
+    if (it.video) {
+        const badge = document.createElement('span');
+        badge.className = 'photo-play';
+        badge.setAttribute('aria-hidden', 'true');
+        badge.innerHTML = '&#9654;';
+        figure.appendChild(badge);
+    }
+    return figure;
 }
 
 function localPhotoURL(name, dir = GALLERY_PATH) {
@@ -514,6 +686,8 @@ function applyHeroPhoto(name) {
 
 function applyFeaturedPhoto(name) {
     applySpotlightPhoto('featured-photo', 'featured-photo-img', name, 1400);
+    const featuredImg = document.getElementById('featured-photo-img');
+    if (featuredImg) featuredImg.addEventListener('click', () => openLightbox(localPhotoURL(name)));
     const caption = document.getElementById('featured-caption');
     if (caption && CONFIG.featuredCaption) {
         caption.textContent = CONFIG.featuredCaption;
@@ -871,21 +1045,113 @@ async function submitToSite(form, url, options, successText) {
     }
 }
 
-function openLightbox(src) {
+// ---------- Photo viewer (lightbox with arrows, swipe, and videos) ----------
+let viewerIndex = 0;
+
+function viewerParts() {
     const box = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    if (!box || !img) return;
-    img.src = src;
-    box.hidden = false;
+    if (!box) return null;
+    if (!box.querySelector('.lb-arrow')) {
+        box.insertAdjacentHTML('beforeend', `
+            <button type="button" class="lb-arrow lb-prev" aria-label="Previous photo">&#8249;</button>
+            <button type="button" class="lb-arrow lb-next" aria-label="Next photo">&#8250;</button>
+            <video class="lb-video" controls playsinline hidden></video>
+            <p class="lb-count" aria-live="polite"></p>`);
+        box.querySelector('.lb-prev').addEventListener('click', (e) => { e.stopPropagation(); showPhoto(viewerIndex - 1); });
+        box.querySelector('.lb-next').addEventListener('click', (e) => { e.stopPropagation(); showPhoto(viewerIndex + 1); });
+        box.querySelector('.lb-video').addEventListener('click', (e) => e.stopPropagation());
+        let sx = null;
+        let sy = null;
+        box.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+        box.addEventListener('touchend', (e) => {
+            if (sx === null) return;
+            const dx = e.changedTouches[0].clientX - sx;
+            const dy = e.changedTouches[0].clientY - sy;
+            sx = null;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) showPhoto(viewerIndex + (dx < 0 ? 1 : -1));
+        });
+        box.querySelector('img').addEventListener('click', (e) => {
+            // Tapping the photo itself moves on; tapping the dark area closes.
+            if (galleryOrder.length > 1) { e.stopPropagation(); showPhoto(viewerIndex + 1); }
+        });
+    }
+    return {
+        box,
+        img: box.querySelector('img'),
+        video: box.querySelector('.lb-video'),
+        count: box.querySelector('.lb-count'),
+        arrows: box.querySelectorAll('.lb-arrow'),
+    };
+}
+
+function showPhoto(i) {
+    const v = viewerParts();
+    if (!v || !galleryOrder.length) return;
+    const n = galleryOrder.length;
+    viewerIndex = ((i % n) + n) % n;
+    const it = galleryOrder[viewerIndex];
+    v.video.pause();
+    if (it.video) {
+        v.img.hidden = true;
+        v.img.removeAttribute('src');
+        v.video.hidden = false;
+        v.video.poster = it.poster ? localPhotoURL(it.poster) : '';
+        v.video.src = localPhotoURL(it.name);
+        v.video.play().catch(() => {});
+    } else {
+        v.video.hidden = true;
+        v.video.removeAttribute('src');
+        v.video.load();
+        v.img.hidden = false;
+        let triedLocal = false;
+        v.img.onerror = () => {
+            if (!triedLocal) { triedLocal = true; v.img.src = localPhotoURL(it.name); }
+        };
+        v.img.src = thumbPhotoURL(it.name, 1600);
+    }
+    v.count.textContent = `${viewerIndex + 1} of ${n}`;
+    v.arrows.forEach((a) => { a.hidden = n < 2; });
+    // Warm up the neighbors so arrows feel instant.
+    [viewerIndex + 1, viewerIndex - 1].forEach((j) => {
+        const nb = galleryOrder[((j % n) + n) % n];
+        if (nb && !nb.video) new Image().src = thumbPhotoURL(nb.name, 1600);
+    });
+}
+
+function openPhotoViewer(i) {
+    const v = viewerParts();
+    if (!v) return;
+    showPhoto(i);
+    v.box.hidden = false;
+    document.body.style.overflow = 'hidden';
+    document.getElementById('lightbox-close')?.focus();
+}
+
+// Single image (no arrows), e.g. the featured photo.
+function openLightbox(src) {
+    const v = viewerParts();
+    if (!v) return;
+    v.video.pause();
+    v.video.hidden = true;
+    v.img.hidden = false;
+    v.img.onerror = null;
+    v.img.src = src;
+    v.count.textContent = '';
+    v.arrows.forEach((a) => { a.hidden = true; });
+    v.box.dataset.single = '1';
+    v.box.hidden = false;
     document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox() {
     const box = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
     if (!box) return;
     box.hidden = true;
-    if (img) img.src = '';
+    delete box.dataset.single;
+    const img = document.getElementById('lightbox-img');
+    if (img) img.removeAttribute('src');
+    const video = box.querySelector('.lb-video');
+    if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
     document.body.style.overflow = '';
 }
 
@@ -894,7 +1160,11 @@ function setupLightbox() {
     if (!box) return;
     box.addEventListener('click', closeLightbox);
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !box.hidden) closeLightbox();
+        if (box.hidden) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (box.dataset.single) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); showPhoto(viewerIndex + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); showPhoto(viewerIndex - 1); }
     });
 }
 

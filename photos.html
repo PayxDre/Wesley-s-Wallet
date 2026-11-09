@@ -50,15 +50,19 @@
         <section id="gallery" class="section gallery">
             <div class="container">
                 <h2 class="section-title">His Smile and His Starry Eyes</h2>
-                <div class="photo-grid" id="photo-grid"></div>
-                <p class="gallery-empty" id="gallery-empty" hidden>Photos coming soon.</p>
+                <p class="section-lede">Tap any photo to see it up close, then use the arrows or swipe to keep going.</p>
 
                 <div class="featured-photo" id="featured-photo" hidden>
                     <div class="featured-photo-frame">
-                        <img id="featured-photo-img" alt="Wesley" />
+                        <picture class="lion-perch lion-on-frame" aria-hidden="true"><source srcset="assets/lion-plush.webp" type="image/webp" /><img src="assets/lion-plush.png" alt="" width="340" height="326" loading="lazy" /></picture>
+                        <img id="featured-photo-img" alt="Wesley with his family" />
                     </div>
                     <p class="featured-caption" id="featured-caption" hidden></p>
                 </div>
+
+                <p class="photo-count" id="photo-count" hidden></p>
+                <div class="photo-grid" id="photo-grid"></div>
+                <p class="gallery-empty" id="gallery-empty" hidden>Photos coming soon.</p>
 
                 <form class="memory-form upload-form" id="photo-form">
                     <h3 class="sunset-form-title">Share a photo or video of Wesley</h3>

@@ -556,17 +556,37 @@ a:hover {
 }
 
 .photo-grid {
-    columns: 3 240px;
-    column-gap: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.photo-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 @media (max-width: 720px) {
-    .photo-grid { columns: 2 160px; column-gap: 12px; }
+    .photo-grid { gap: 12px; }
+    .photo-col { gap: 14px; }
+}
+
+.photo-count {
+    text-align: center;
+    margin: -8px 0 28px;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--gold);
 }
 
 .photo {
-    margin: 0 0 18px;
-    break-inside: avoid;
+    position: relative;
+    margin: 0;
+    cursor: zoom-in;
     border-radius: var(--radius);
     overflow: hidden;
     background: #fff;
@@ -588,21 +608,21 @@ a:hover {
 }
 
 /* Vary tilt and corner shape so the wall feels organic, not gridded */
-.photo:nth-child(8n+1) { transform: rotate(-3deg);   border-radius: 18px; }
-.photo:nth-child(8n+2) { transform: rotate(1.6deg);  border-radius: 6px; }
-.photo:nth-child(8n+3) { transform: rotate(-1.4deg); aspect-ratio: 1 / 1; border-radius: 50%; }
-.photo:nth-child(8n+4) { transform: rotate(3.6deg);  border-radius: 14px 32px 14px 32px; }
-.photo:nth-child(8n+5) { transform: rotate(-2.6deg); border-radius: 28px; }
-.photo:nth-child(8n+6) { transform: rotate(1deg);    border-radius: 8px; }
-.photo:nth-child(8n+7) { transform: rotate(-3.4deg); aspect-ratio: 1 / 1; border-radius: 50%; }
-.photo:nth-child(8n+8) { transform: rotate(2.8deg);  border-radius: 32px 8px 32px 8px; }
+.photo.v1 { transform: rotate(-3deg);   border-radius: 18px; }
+.photo.v2 { transform: rotate(1.6deg);  border-radius: 6px; }
+.photo.v3 { transform: rotate(-1.4deg); aspect-ratio: 1 / 1; border-radius: 50%; }
+.photo.v4 { transform: rotate(3.6deg);  border-radius: 14px 32px 14px 32px; }
+.photo.v5 { transform: rotate(-2.6deg); border-radius: 28px; }
+.photo.v6 { transform: rotate(1deg);    border-radius: 8px; }
+.photo.v7 { transform: rotate(-3.4deg); aspect-ratio: 1 / 1; border-radius: 50%; }
+.photo.v8 { transform: rotate(2.8deg);  border-radius: 32px 8px 32px 8px; }
 
 /* Circular tiles: make the image fill the square and bias the crop toward
    the upper-middle so most faces stay inside the circle */
-.photo:nth-child(8n+3) img,
-.photo:nth-child(8n+3) video,
-.photo:nth-child(8n+7) img,
-.photo:nth-child(8n+7) video {
+.photo.v3 img,
+.photo.v3 video,
+.photo.v7 img,
+.photo.v7 video {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -630,10 +650,14 @@ a:hover {
     padding: 48px 0;
 }
 
-/* ---------- Featured photo (framed, below the wall) ---------- */
+/* ---------- Featured photo (framed, above the wall) ---------- */
 .featured-photo {
-    max-width: 720px;
-    margin: 80px auto 0;
+    max-width: 640px;
+    margin: 120px auto 72px;
+}
+
+.featured-photo-frame img {
+    cursor: zoom-in;
 }
 
 .featured-photo-frame {
@@ -2290,4 +2314,164 @@ section,
 .next-page-text {
     font-size: 0.9rem;
     color: var(--ink-soft);
+}
+
+.photo:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+}
+
+.photo-play {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 250, 242, 0.88);
+    color: var(--ink);
+    font-size: 0.8rem;
+    display: grid;
+    place-items: center;
+    padding-left: 3px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+.photo.v3 .photo-play,
+.photo.v7 .photo-play {
+    right: 50%;
+    bottom: 10%;
+    transform: translateX(50%);
+}
+
+/* ---------- Photo viewer controls ---------- */
+.lb-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255, 250, 242, 0.14);
+    color: #f3ede4;
+    font-size: 2rem;
+    line-height: 1;
+    padding-bottom: 4px;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.lb-arrow:hover { background: rgba(255, 250, 242, 0.26); }
+.lb-arrow[hidden] { display: none; }
+.lb-prev { left: 16px; }
+.lb-next { right: 16px; }
+
+.lb-video {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 6px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.lb-video[hidden],
+.lightbox img[hidden] { display: none; }
+
+.lb-count {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    margin: 0;
+    text-align: center;
+    color: rgba(243, 237, 228, 0.75);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+}
+
+@media (max-width: 600px) {
+    .lb-arrow { width: 40px; height: 40px; font-size: 1.6rem; background: rgba(30, 27, 23, 0.45); }
+    .lb-prev { left: 6px; }
+    .lb-next { right: 6px; }
+}
+
+/* ---------- The stuffed lion, visiting other pages ---------- */
+.lion-perch {
+    position: absolute;
+    display: block;
+    width: 120px;
+    pointer-events: none;
+    z-index: 3;
+    filter: drop-shadow(0 6px 8px rgba(45, 42, 38, 0.18));
+}
+
+.lion-perch img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Sitting on the top edge of a card, feet over the front */
+.lion-on-card {
+    top: -98px;
+    right: 32px;
+}
+
+.lion-on-frame {
+    width: 150px;
+    top: -124px;
+    right: 40px;
+}
+
+.lion-on-card--left {
+    right: auto;
+    left: 32px;
+}
+
+.memory-form {
+    position: relative;
+}
+
+/* Keeping the candle company */
+.lion-by-candle {
+    width: 104px;
+    bottom: 10px;
+    left: calc(50% - 158px);
+    transform: rotate(7deg);
+    transform-origin: bottom right;
+}
+
+/* Leaning on the poem card */
+.reading-poem {
+    position: relative;
+}
+
+.lion-leaning {
+    width: 110px;
+    right: -64px;
+    bottom: -28px;
+    transform: rotate(-9deg);
+    transform-origin: bottom left;
+}
+
+@media (max-width: 760px) {
+    .lion-leaning {
+        width: 84px;
+        right: -10px;
+        bottom: -52px;
+    }
+    .reading-poem { margin-bottom: 36px; }
+}
+
+@media (max-width: 600px) {
+    .lion-on-card,
+    .lion-on-frame {
+        width: 92px;
+        top: -76px;
+        right: 18px;
+    }
+    .lion-on-card--left { right: auto; left: 18px; }
+    .featured-photo { margin-top: 96px; }
 }
