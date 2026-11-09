@@ -1592,12 +1592,15 @@ section,
 }
 
 .ll-logo {
-    width: 140px;
-    height: 140px;
-    margin: 0 auto 28px;
-    border-radius: 50%;
-    text-align: center;
-    padding: 12px;
+    display: block;
+    width: 160px;
+    margin: 0 auto 24px;
+}
+
+.ll-logo img {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 /* No decorative drop cap here: it turns a leading "[" into a giant glyph */
