@@ -43,6 +43,8 @@ async function fetchBTCPrice() {
     };
 }
 
+// Balance plus the number of gifts (incoming payments, including ones
+// still waiting to confirm), from one Blockstream lookup.
 async function fetchWalletBalance(address) {
     const res = await fetch(`https://blockstream.info/api/address/${address}`);
     if (!res.ok) throw new Error('balance fetch failed');
@@ -50,8 +52,11 @@ async function fetchWalletBalance(address) {
     const sats =
         (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) +
         (data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum);
+    walletGiftCount = data.chain_stats.funded_txo_count + data.mempool_stats.funded_txo_count;
     return sats;
 }
+
+let walletGiftCount = null;
 
 async function fetchCurrentBlockHeight() {
     const res = await fetch('https://blockstream.info/api/blocks/tip/height');
@@ -125,7 +130,7 @@ async function loadGrowthMetrics(currentSats, currentPrice) {
         setVal('growth-blocks', `~${Math.floor(days * 144).toLocaleString()}`);
     }
 
-    // BTC price change & wallet growth
+    // BTC price change since he passed
     try {
         if (currentPrice == null) throw new Error('current price unavailable');
         const passPrice = await fetchBTCPriceAtPassing();
@@ -134,26 +139,22 @@ async function loadGrowthMetrics(currentSats, currentPrice) {
         const sign = priceDelta >= 0 ? '+' : '';
         setVal('growth-price', `${sign}${pricePct.toFixed(1)}%`, priceDelta >= 0 ? 'positive' : 'negative');
         setVal('growth-price-sub', `${sign}${fmtUSD(priceDelta)} per BTC`);
-
-        if (currentSats === null) {
-            setVal('growth-value', '—', '');
-            setVal('growth-value-sub', 'Balance unavailable right now');
-        } else if (currentSats > 0) {
-            const btc = currentSats / 1e8;
-            const valueDelta = btc * priceDelta;
-            const valueAtPass = btc * passPrice;
-            const valuePct = (valueDelta / valueAtPass) * 100;
-            const sign2 = valueDelta >= 0 ? '+' : '';
-            setVal('growth-value', `${sign2}${fmtUSD(valueDelta)}`, valueDelta >= 0 ? 'positive' : 'negative');
-            setVal('growth-value-sub', `${sign2}${valuePct.toFixed(1)}% on ${btc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC`);
-        } else {
-            setVal('growth-value', '—', '');
-            setVal('growth-value-sub', CONFIG.walletAddress ? 'Awaiting first deposit' : 'Wallet being set up');
-        }
     } catch (e) {
         console.warn('growth price fetch failed:', e);
         setVal('growth-price', '—', '');
+    }
+
+    // Gifts received: a count, independent of price
+    if (currentSats === null || (CONFIG.walletAddress && walletGiftCount === null)) {
         setVal('growth-value', '—', '');
+        setVal('growth-value-sub', 'Unavailable right now');
+    } else if (!CONFIG.walletAddress) {
+        setVal('growth-value', '—', '');
+        setVal('growth-value-sub', 'Wallet being set up');
+    } else {
+        setVal('growth-value', walletGiftCount.toLocaleString(), '');
+        setVal('growth-value-sub', walletGiftCount === 0 ? 'Be the first to add to it'
+            : walletGiftCount === 1 ? 'gift so far' : 'gifts so far');
     }
 }
 
