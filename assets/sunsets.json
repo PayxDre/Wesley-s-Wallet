@@ -1,4 +1,20 @@
 [
-  {"file": "2026-09-30-punta-cana.jpg", "date": "2026-09-30", "place": "Punta Cana", "name": "Andrew"},
-  {"file": "2026-11-07-rehoboth-beach.jpg", "date": "2026-11-07", "place": "Rehoboth Beach", "name": "Andrew"}
+  {
+    "file": "2026-09-30-punta-cana.jpg",
+    "date": "2026-09-30",
+    "place": "Punta Cana",
+    "name": "Andrew"
+  },
+  {
+    "file": "2026-11-07-rehoboth-beach.jpg",
+    "date": "2026-11-07",
+    "place": "Rehoboth Beach",
+    "name": "Andrew"
+  },
+  {
+    "file": "2026-11-09-rehoboth-beach.jpg",
+    "date": "2026-11-09",
+    "place": "Rehoboth Beach, DE",
+    "name": "Erica McGreevy"
+  }
 ]
