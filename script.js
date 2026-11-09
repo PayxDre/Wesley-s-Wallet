@@ -8,6 +8,10 @@ const CONFIG = {
     // Until then the wallet card shows a "being set up" state instead of
     // live numbers. (Earlier test address: bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293)
     walletAddress: null,
+    // Inbox for sunset photo submissions. While null, the sunset section
+    // shows a "coming back soon" note instead of a send button. (Memory Wall
+    // submissions go through Formspree; see setupMemoryForm.)
+    submissionsEmail: null,
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
@@ -414,30 +418,30 @@ async function loadGallery() {
     });
 }
 
-function localPhotoURL(name) {
-    return `assets/photos/${encodeURIComponent(name)}`;
+function localPhotoURL(name, dir = GALLERY_PATH) {
+    return `${dir}/${encodeURIComponent(name)}`;
 }
 
 // Originals straight off the phone run 2-4 MB each; with a wall of them the
 // page costs tens of megabytes. Serve gallery thumbnails through the free
 // wsrv.nl resizing proxy (reading from raw.githubusercontent.com), and fall
 // back to the local original if the proxy is ever unreachable.
-function thumbPhotoURL(name, width) {
-    const raw = `https://raw.githubusercontent.com/${GALLERY_REPO}/${galleryBranch}/${GALLERY_PATH}/${name}`;
+function thumbPhotoURL(name, width, dir = GALLERY_PATH) {
+    const raw = `https://raw.githubusercontent.com/${GALLERY_REPO}/${galleryBranch}/${dir}/${name}`;
     return `https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=${width}&q=78&output=jpg`;
 }
 
-function setImageWithFallback(img, name, width, figure) {
+function setImageWithFallback(img, name, width, figure, dir = GALLERY_PATH) {
     let triedLocal = false;
     img.addEventListener('error', () => {
         if (!triedLocal) {
             triedLocal = true;
-            img.src = localPhotoURL(name);
+            img.src = localPhotoURL(name, dir);
         } else if (figure) {
             figure.classList.add('is-missing');
         }
     });
-    img.src = thumbPhotoURL(name, width);
+    img.src = thumbPhotoURL(name, width, dir);
 }
 
 function stableHash(s) {
@@ -776,19 +780,12 @@ async function loadMemories() {
     });
 }
 
+// Memory Wall submissions post to Formspree, which forwards them to the
+// family's review inbox (set in the Formspree dashboard), so no email
+// address appears on the site. Approved memories go in assets/memories.json.
 function setupMemoryForm() {
     const form = document.getElementById('memory-form');
     if (!form) return;
-
-    // If the Formspree action hasn't been set yet, swap the form for a
-    // gentle 'coming soon' note instead of letting submissions fail silently.
-    if (form.action.includes('YOUR_FORMSPREE_ID')) {
-        const placeholder = document.createElement('p');
-        placeholder.className = 'form-pending';
-        placeholder.textContent = 'The sharing form is coming online soon.';
-        form.replaceWith(placeholder);
-        return;
-    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -871,6 +868,130 @@ function setupReveals() {
     });
 }
 
+// ---------- Sunsets for Wesley ----------
+// Photos live in assets/sunsets/ (added after review, like the gallery).
+// The list is read from GitHub the same way the gallery is.
+const SUNSET_PATH = 'assets/sunsets';
+const SUNSET_CACHE_KEY = 'wesley-sunsets-v1';
+
+async function fetchSunsetList() {
+    try {
+        const raw = localStorage.getItem(SUNSET_CACHE_KEY);
+        if (raw) {
+            const { t, names } = JSON.parse(raw);
+            if (Date.now() - t < GALLERY_CACHE_TTL && Array.isArray(names)) return names;
+        }
+    } catch {}
+    for (const branch of GALLERY_BRANCHES) {
+        try {
+            const res = await fetch(
+                `https://api.github.com/repos/${GALLERY_REPO}/contents/${SUNSET_PATH}?ref=${encodeURIComponent(branch)}`
+            );
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (!Array.isArray(data)) continue;
+            const names = data
+                .filter((f) => f.type === 'file' && IMAGE_RX.test(f.name))
+                .map((f) => f.name);
+            if (names.length) {
+                try {
+                    localStorage.setItem(SUNSET_CACHE_KEY, JSON.stringify({ t: Date.now(), names }));
+                } catch {}
+                return names;
+            }
+        } catch (e) {
+            console.warn('sunset list fetch failed for', branch, e);
+        }
+    }
+    return [];
+}
+
+async function loadSunsets() {
+    const grid = document.getElementById('sunset-grid');
+    const empty = document.getElementById('sunset-empty');
+    const count = document.getElementById('sunset-count');
+    const btn = document.getElementById('sunset-email');
+    if (!grid) return;
+
+    if (btn && !CONFIG.submissionsEmail) {
+        const share = btn.closest('.sunset-share');
+        if (share) {
+            share.innerHTML = '<p class="form-note">Sending a sunset will be open again soon.</p>';
+        }
+    } else if (btn) {
+        const subject = encodeURIComponent('A sunset for Wesley');
+        const body = encodeURIComponent(
+            'Attach your sunset photo to this email.\n\nWhere I watched it:\n\nMy name (optional):\n'
+        );
+        btn.href = `mailto:${CONFIG.submissionsEmail}?subject=${subject}&body=${body}`;
+    }
+
+    const names = await fetchSunsetList();
+    if (!names.length) return;
+
+    // Newest uploads first: filenames that start with a date sort naturally.
+    names.sort().reverse();
+    grid.innerHTML = '';
+    names.forEach((name) => {
+        const figure = document.createElement('figure');
+        figure.className = 'sunset';
+        const img = document.createElement('img');
+        img.alt = 'A sunset shared for Wesley';
+        img.loading = 'lazy';
+        setImageWithFallback(img, name, 500, figure, SUNSET_PATH);
+        img.addEventListener('click', () => openLightbox(localPhotoURL(name, SUNSET_PATH)));
+        figure.appendChild(img);
+        grid.appendChild(figure);
+    });
+    if (empty) empty.hidden = true;
+    if (count) {
+        count.textContent = `${names.length.toLocaleString()} ${names.length === 1 ? 'sunset' : 'sunsets'} shared so far`;
+        count.hidden = false;
+    }
+}
+
+// ---------- Add to Wesley's Gift ----------
+// Stays in its "coming soon" state until CONFIG.walletAddress is set,
+// then shows a scannable QR code, a copy button, and send steps.
+function setupGift() {
+    const addr = CONFIG.walletAddress;
+    if (!addr) return;
+    const uri = `bitcoin:${addr}`;
+
+    const qr = document.getElementById('gift-qr');
+    if (qr && typeof qrcode === 'function') {
+        const code = qrcode(0, 'M');
+        // Uppercase bech32 makes a smaller, easier-to-scan code.
+        code.addData(uri.toUpperCase(), 'Alphanumeric');
+        code.make();
+        qr.innerHTML = code.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+        qr.href = uri; // On a phone, tapping opens the visitor's wallet app.
+    }
+
+    const addrEl = document.getElementById('gift-address');
+    if (addrEl) {
+        addrEl.textContent = addr;
+        addrEl.classList.add('is-set');
+    }
+
+    const steps = document.getElementById('gift-steps');
+    if (steps) steps.hidden = false;
+
+    const copy = document.getElementById('gift-copy');
+    if (copy) {
+        copy.hidden = false;
+        copy.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(addr);
+                copy.textContent = 'Copied';
+                setTimeout(() => { copy.textContent = 'Copy address'; }, 2000);
+            } catch (e) {
+                console.warn('copy failed', e);
+            }
+        });
+    }
+}
+
 (async function init() {
     setupIntroFly();
     setAgeLine();
@@ -880,6 +1001,8 @@ function setupReveals() {
     setupReveals();
     setupCandle();
     setupShareButton();
+    setupGift();
+    loadSunsets();
     loadLetters();
     loadMemories();
     setupMemoryForm();
