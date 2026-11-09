@@ -4,10 +4,9 @@
 //   - Blockstream:  wallet balance (when a real address is set)
 
 const CONFIG = {
-    // Set to the real family wallet address once it's created and funded.
-    // Until then the wallet card shows a "being set up" state instead of
-    // live numbers. (Earlier test address: bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293)
-    walletAddress: null,
+    // The family gift wallet. Set to null to show a "being set up" state
+    // instead of live numbers.
+    walletAddress: 'bc1qhrvv3xjwlluq7fzkp6evhg00j5e9mqhunlshuf',
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
@@ -128,6 +127,7 @@ async function loadGrowthMetrics(currentSats, currentPrice) {
 
     // BTC price change & wallet growth
     try {
+        if (currentPrice == null) throw new Error('current price unavailable');
         const passPrice = await fetchBTCPriceAtPassing();
         const priceDelta = currentPrice - passPrice;
         const pricePct = (priceDelta / passPrice) * 100;
@@ -135,7 +135,10 @@ async function loadGrowthMetrics(currentSats, currentPrice) {
         setVal('growth-price', `${sign}${pricePct.toFixed(1)}%`, priceDelta >= 0 ? 'positive' : 'negative');
         setVal('growth-price-sub', `${sign}${fmtUSD(priceDelta)} per BTC`);
 
-        if (currentSats > 0) {
+        if (currentSats === null) {
+            setVal('growth-value', '—', '');
+            setVal('growth-value-sub', 'Balance unavailable right now');
+        } else if (currentSats > 0) {
             const btc = currentSats / 1e8;
             const valueDelta = btc * priceDelta;
             const valueAtPass = btc * passPrice;
@@ -145,7 +148,7 @@ async function loadGrowthMetrics(currentSats, currentPrice) {
             setVal('growth-value-sub', `${sign2}${valuePct.toFixed(1)}% on ${btc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC`);
         } else {
             setVal('growth-value', '—', '');
-            setVal('growth-value-sub', 'Wallet being set up');
+            setVal('growth-value-sub', CONFIG.walletAddress ? 'Awaiting first deposit' : 'Wallet being set up');
         }
     } catch (e) {
         console.warn('growth price fetch failed:', e);
@@ -237,10 +240,12 @@ let balancePromise = null;
 function getBalanceSats() {
     if (!CONFIG.walletAddress) return Promise.resolve(0);
     if (!balancePromise) {
+        // A failed lookup returns null (not 0) so the page says "unavailable"
+        // instead of showing an empty wallet.
         balancePromise = fetchWalletBalance(CONFIG.walletAddress).catch((e) => {
             console.warn('balance fetch failed:', e);
             balancePromise = null;
-            return 0;
+            return null;
         });
     }
     return balancePromise;
@@ -250,13 +255,18 @@ async function loadChart(days) {
     const note = $('#chart-note');
     note.textContent = 'Loading wallet history…';
     try {
-        const [prices, sats] = await Promise.all([fetchPriceHistory(days), getBalanceSats()]);
+        // Check the balance first: an unfunded wallet needs no price history.
+        const sats = await getBalanceSats();
+        if (sats === null) throw new Error('balance unavailable');
         const btc = sats / 1e8;
         if (btc <= 0) {
-            note.textContent = 'The wallet chart will appear here once the wallet is set up and funded.';
+            note.textContent = CONFIG.walletAddress
+                ? 'The chart will appear here once the wallet is funded.'
+                : 'The wallet chart will appear here once the wallet is set up and funded.';
             if (chart) { chart.destroy(); chart = null; }
             return;
         }
+        const prices = await fetchPriceHistory(days);
         const walletValues = prices.map(([t, p]) => [t, btc * p]);
         renderChart(walletValues);
         note.textContent = '';
@@ -267,41 +277,54 @@ async function loadChart(days) {
 }
 
 async function loadWallet() {
-    if (!CONFIG.walletAddress) {
+    const addr = CONFIG.walletAddress;
+    if (addr) {
+        // Show the address right away; it doesn't depend on any live data.
+        const addrEl = $('#wallet-address');
+        addrEl.innerHTML = '';
+        const a = document.createElement('a');
+        a.href = `https://mempool.space/address/${addr}`;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = addr;
+        addrEl.appendChild(a);
+    } else {
         $('#btc-balance').textContent = 'Being set up';
         $('#usd-value').textContent = 'Balance will appear once funded';
         $('#wallet-address').textContent = 'Coming soon';
     }
-    try {
-        const price = await fetchBTCPrice();
+
+    // Price and balance come from different services; one failing must
+    // not hide the other.
+    const [priceRes, satsRes] = await Promise.allSettled([
+        fetchBTCPrice(),
+        addr ? getBalanceSats() : Promise.resolve(0),
+    ]);
+    const price = priceRes.status === 'fulfilled' ? priceRes.value : null;
+    const sats = satsRes.status === 'fulfilled' ? satsRes.value : null;
+
+    if (price) {
         $('#btc-price').textContent = fmtUSD(price.usd);
         const change = price.change24h;
         const sign = change >= 0 ? '+' : '';
         $('#btc-change').textContent = `${sign}${change.toFixed(2)}% today`;
         $('#btc-change').style.color = change >= 0 ? '#5e7a52' : '#a85a4a';
-
-        if (CONFIG.walletAddress) {
-            const addrEl = $('#wallet-address');
-            addrEl.innerHTML = '';
-            const a = document.createElement('a');
-            a.href = `https://mempool.space/address/${CONFIG.walletAddress}`;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            a.textContent = CONFIG.walletAddress;
-            addrEl.appendChild(a);
-            const sats = await getBalanceSats();
-            $('#btc-balance').textContent = fmtBTC(sats);
-            $('#usd-value').textContent = fmtUSD((sats / 1e8) * price.usd);
-            loadGrowthMetrics(sats, price.usd);
-        } else {
-            loadGrowthMetrics(0, price.usd);
-            $('#btc-balance').textContent = 'Being set up';
-            $('#usd-value').textContent = 'Balance will appear once funded';
-            $('#wallet-address').textContent = 'Coming soon';
-        }
-    } catch (e) {
-        console.error(e);
+    } else {
+        $('#btc-price').textContent = 'Unavailable';
+        $('#btc-change').textContent = 'Live price could not be loaded';
     }
+
+    if (addr) {
+        if (sats === null) {
+            $('#btc-balance').textContent = 'Unavailable';
+            $('#usd-value').textContent = 'Balance could not be loaded right now';
+        } else {
+            $('#btc-balance').textContent = fmtBTC(sats);
+            $('#usd-value').textContent = price ? fmtUSD((sats / 1e8) * price.usd) : 'USD value unavailable';
+        }
+    }
+
+    loadGrowthMetrics(addr ? sats : 0, price ? price.usd : null);
 }
 
 function setupRangeButtons() {
