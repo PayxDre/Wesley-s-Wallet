@@ -957,34 +957,423 @@ async function fetchSunsetList() {
     return [];
 }
 
+// ---------- Sunrise list ----------
+// assets/sunsets.json holds each published sunrise's date, place, and the
+// sharer's name (the review bot adds an entry when it publishes). Photos in
+// the folder without an entry still show, with date and place read from the
+// file name.
+const SUNRISE_MANIFEST = 'assets/sunsets.json';
+
+function parseLocalDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+
+function isoDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function fmtShortDate(iso, withYear = true) {
+    const d = parseLocalDate(iso);
+    if (!d) return '';
+    return d.toLocaleDateString('en-US', withYear
+        ? { month: 'short', day: 'numeric', year: 'numeric' }
+        : { month: 'short', day: 'numeric' });
+}
+
+function placeFromFileName(file) {
+    const slug = file.replace(/\.[^.]+$/, '').replace(/^\d{4}-\d{2}-\d{2}-?/, '')
+        .replace(/-\d+$/, '').replace(/^(sunset|sunrise)$/i, '');
+    return slug.split('-').filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+
+async function loadSunriseItems() {
+    let manifest = [];
+    try {
+        const res = await fetch(SUNRISE_MANIFEST, { cache: 'no-cache' });
+        if (res.ok) manifest = await res.json();
+    } catch (e) {
+        console.warn('sunrise list fetch failed', e);
+    }
+    const byFile = new Map();
+    (Array.isArray(manifest) ? manifest : []).forEach((m) => {
+        if (!m || typeof m.file !== 'string' || !IMAGE_RX.test(m.file)) return;
+        byFile.set(m.file, {
+            file: m.file,
+            date: m.date || (m.file.match(/^\d{4}-\d{2}-\d{2}/) || [''])[0],
+            place: m.place || placeFromFileName(m.file),
+            name: m.name || '',
+        });
+    });
+    (await fetchSunsetList()).forEach((file) => {
+        if (!byFile.has(file)) {
+            byFile.set(file, {
+                file,
+                date: (file.match(/^\d{4}-\d{2}-\d{2}/) || [''])[0],
+                place: placeFromFileName(file),
+                name: '',
+            });
+        }
+    });
+    return [...byFile.values()].sort((a, b) =>
+        (b.date || '').localeCompare(a.date || '') || b.file.localeCompare(a.file));
+}
+
+function sunriseThumb(item, width) {
+    return thumbPhotoURL(item.file, width, SUNSET_PATH);
+}
+
+function sunriseLocal(item) {
+    return localPhotoURL(item.file, SUNSET_PATH);
+}
+
+// ---------- Sunrise viewer (full-screen and "one at a time") ----------
+function createSunriseViewer(root, items) {
+    root.innerHTML = `
+        <div class="sr-stage">
+            <button type="button" class="sr-arrow sr-prev" aria-label="Previous sunrise">&#8249;</button>
+            <img class="sr-img" alt="" />
+            <button type="button" class="sr-arrow sr-next" aria-label="Next sunrise">&#8250;</button>
+        </div>
+        <div class="sr-caption" aria-live="polite">
+            <span class="sr-place"></span>
+            <span class="sr-meta"></span>
+            <span class="sr-count"></span>
+        </div>`;
+    const img = root.querySelector('.sr-img');
+    const placeEl = root.querySelector('.sr-place');
+    const metaEl = root.querySelector('.sr-meta');
+    const countEl = root.querySelector('.sr-count');
+    const prevBtn = root.querySelector('.sr-prev');
+    const nextBtn = root.querySelector('.sr-next');
+    let index = 0;
+
+    img.addEventListener('error', () => {
+        const item = items[index];
+        if (item && !img.dataset.fallback) {
+            img.dataset.fallback = '1';
+            img.src = sunriseLocal(item);
+        }
+    });
+
+    function show(i) {
+        if (!items.length) return;
+        index = (i + items.length) % items.length;
+        const item = items[index];
+        img.dataset.fallback = '';
+        img.src = sunriseThumb(item, 1600);
+        img.alt = item.place ? `Sunrise at ${item.place}` : 'A sunrise shared for Wesley';
+        placeEl.textContent = item.place || 'A sunrise for Wesley';
+        metaEl.textContent = [item.name && `Shared by ${item.name}`, fmtShortDate(item.date)]
+            .filter(Boolean).join(' · ');
+        countEl.textContent = items.length > 1 ? `${index + 1} of ${items.length}` : '';
+        const multi = items.length > 1;
+        prevBtn.hidden = !multi;
+        nextBtn.hidden = !multi;
+        // Warm the neighbors so arrows feel instant.
+        if (multi) {
+            [index - 1, index + 1].forEach((j) => {
+                const n = items[(j + items.length) % items.length];
+                new Image().src = sunriseThumb(n, 1600);
+            });
+        }
+    }
+
+    prevBtn.addEventListener('click', () => show(index - 1));
+    nextBtn.addEventListener('click', () => show(index + 1));
+
+    // Swipe left/right on touch screens.
+    const stage = root.querySelector('.sr-stage');
+    let startX = null;
+    let startY = null;
+    stage.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+    stage.addEventListener('touchend', (e) => {
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) show(index + (dx < 0 ? 1 : -1));
+        startX = null;
+    });
+
+    return {
+        show,
+        next: () => show(index + 1),
+        prev: () => show(index - 1),
+    };
+}
+
+// ---------- Weekly sunrise blend ----------
+function weekStartIso(iso) {
+    const d = parseLocalDate(iso);
+    if (!d) return null;
+    d.setDate(d.getDate() - d.getDay()); // weeks run Sunday to Saturday
+    return isoDate(d);
+}
+
+function loadImageElement(src) {
+    return new Promise((resolve) => {
+        const im = new Image();
+        im.onload = () => resolve(im);
+        im.onerror = () => resolve(null);
+        im.src = src;
+    });
+}
+
+async function drawSunriseMesh(canvas, list, title, subtitle, labelStrips) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#2d2a26';
+    ctx.fillRect(0, 0, W, H);
+
+    // Same-origin originals keep the canvas exportable for download.
+    const chronological = list.slice().sort((a, b) =>
+        (a.date || '').localeCompare(b.date || '') || a.file.localeCompare(b.file));
+    const images = await Promise.all(chronological.map((it) => loadImageElement(sunriseLocal(it))));
+    const strips = chronological.map((it, i) => ({ it, img: images[i] })).filter((s) => s.img);
+
+    if (!strips.length) {
+        ctx.fillStyle = '#f3ede4';
+        ctx.font = 'italic 40px "Cormorant Garamond", Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('These sunrises are still on their way.', W / 2, H / 2);
+        return false;
+    }
+
+    const n = strips.length;
+    const sw = W / n;
+    const feather = Math.min(70, sw * 0.4);
+    strips.forEach(({ img }, i) => {
+        // Each strip overlaps the next one's left edge; the newer strip fades
+        // in over the older one, so neighbors blend without a dark seam.
+        const x0 = i === 0 ? 0 : i * sw - feather;
+        const x1 = i === n - 1 ? W : (i + 1) * sw + feather;
+        const w = Math.ceil(x1 - x0);
+        const t = document.createElement('canvas');
+        t.width = w;
+        t.height = H;
+        const tc = t.getContext('2d');
+        const scale = Math.max(w / img.width, H / img.height);
+        const dw = img.width * scale;
+        const dh = img.height * scale;
+        tc.drawImage(img, (w - dw) / 2, (H - dh) / 2, dw, dh);
+        if (i > 0) {
+            // One fill across the whole strip: 'destination-in' clears
+            // anything outside the filled area, so the fade and the solid
+            // part must be a single gradient.
+            tc.globalCompositeOperation = 'destination-in';
+            const g = tc.createLinearGradient(0, 0, w, 0);
+            g.addColorStop(0, 'rgba(0,0,0,0)');
+            g.addColorStop(Math.min(1, (2 * feather) / w), 'rgba(0,0,0,1)');
+            g.addColorStop(1, 'rgba(0,0,0,1)');
+            tc.fillStyle = g;
+            tc.fillRect(0, 0, w, H);
+        }
+        ctx.drawImage(t, x0, 0);
+    });
+
+    // Caption band.
+    const band = ctx.createLinearGradient(0, H * 0.62, 0, H);
+    band.addColorStop(0, 'rgba(20,16,12,0)');
+    band.addColorStop(1, 'rgba(20,16,12,0.72)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, H * 0.62, W, H * 0.38);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fffaf2';
+    ctx.font = 'italic 64px "Cormorant Garamond", Georgia, serif';
+    ctx.fillText(title, W / 2, H - 92);
+    ctx.font = '500 24px Inter, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,250,242,0.88)';
+    ctx.fillText(subtitle, W / 2, H - 48);
+
+    if (labelStrips) {
+        ctx.font = '600 20px Inter, Arial, sans-serif';
+        ctx.shadowColor = 'rgba(0,0,0,0.55)';
+        ctx.shadowBlur = 8;
+        strips.forEach(({ it }, i) => {
+            const d = parseLocalDate(it.date);
+            const day = d ? d.toLocaleDateString('en-US', { weekday: 'short' }) : '';
+            const label = [day, it.place].filter(Boolean).join(' · ');
+            ctx.fillStyle = '#fffaf2';
+            ctx.fillText(label, i * sw + sw / 2, 46, sw - 16);
+        });
+        ctx.shadowBlur = 0;
+    }
+    return true;
+}
+
+function setupSunriseMesh(items) {
+    const canvas = document.getElementById('sr-mesh-canvas');
+    const label = document.getElementById('sr-mesh-label');
+    const prev = document.getElementById('sr-mesh-prev');
+    const next = document.getElementById('sr-mesh-next');
+    const allBtn = document.getElementById('sr-mesh-all');
+    const dl = document.getElementById('sr-mesh-download');
+    if (!canvas) return () => {};
+
+    const weeks = [...new Set(items.map((it) => weekStartIso(it.date)).filter(Boolean))]
+        .sort().reverse();
+    let weekIdx = 0;
+    let showAll = false;
+    let drawing = 0;
+
+    async function render() {
+        const run = ++drawing;
+        let list;
+        let subtitle;
+        let fileTag;
+        if (showAll || !weeks.length) {
+            list = items.slice(0, 60);
+            subtitle = `All ${items.length} ${items.length === 1 ? 'sunrise' : 'sunrises'}`;
+            label.textContent = 'All sunrises';
+            fileTag = 'all';
+        } else {
+            const start = weeks[weekIdx];
+            const end = parseLocalDate(start);
+            end.setDate(end.getDate() + 6);
+            list = items.filter((it) => weekStartIso(it.date) === start);
+            const range = `${fmtShortDate(start, false)} – ${fmtShortDate(isoDate(end))}`;
+            label.textContent = `Week of ${range}`;
+            subtitle = `Week of ${range} · ${list.length} ${list.length === 1 ? 'sunrise' : 'sunrises'}`;
+            fileTag = `week-of-${start}`;
+        }
+        prev.disabled = showAll || weekIdx >= weeks.length - 1;
+        next.disabled = showAll || weekIdx <= 0;
+        allBtn.textContent = showAll ? 'By week' : 'All sunrises';
+        dl.dataset.file = `sunrises-for-wesley-${fileTag}.jpg`;
+        dl.disabled = true;
+        const ok = await drawSunriseMesh(canvas, list, 'Sunrises for Wesley', subtitle,
+            !showAll && list.length <= 7);
+        if (run === drawing) dl.disabled = !ok;
+    }
+
+    prev.addEventListener('click', () => { weekIdx += 1; render(); });
+    next.addEventListener('click', () => { weekIdx -= 1; render(); });
+    allBtn.addEventListener('click', () => { showAll = !showAll; render(); });
+    dl.addEventListener('click', () => {
+        canvas.toBlob((blob) => {
+            if (!blob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = dl.dataset.file || 'sunrises-for-wesley.jpg';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        }, 'image/jpeg', 0.9);
+    });
+
+    let started = false;
+    // Drawn only when the tab is first opened: it loads every photo in full.
+    return () => {
+        if (!started) {
+            started = true;
+            render();
+        }
+    };
+}
+
+// ---------- Sunrises page ----------
 async function loadSunsets() {
     const grid = document.getElementById('sunset-grid');
     const empty = document.getElementById('sunset-empty');
     const count = document.getElementById('sunset-count');
     if (!grid) return;
 
-    const names = await fetchSunsetList();
-    if (!names.length) return;
+    const items = await loadSunriseItems();
+    if (!items.length) return;
 
-    // Newest uploads first: filenames that start with a date sort naturally.
-    names.sort().reverse();
+    // Collage
     grid.innerHTML = '';
-    names.forEach((name) => {
+    items.forEach((item, i) => {
         const figure = document.createElement('figure');
         figure.className = 'sunset';
         const img = document.createElement('img');
-        img.alt = 'A sunrise shared for Wesley';
+        img.alt = item.place ? `Sunrise at ${item.place}` : 'A sunrise shared for Wesley';
         img.loading = 'lazy';
-        setImageWithFallback(img, name, 500, figure, SUNSET_PATH);
-        img.addEventListener('click', () => openLightbox(localPhotoURL(name, SUNSET_PATH)));
-        figure.appendChild(img);
+        setImageWithFallback(img, item.file, 600, figure, SUNSET_PATH);
+        const cap = document.createElement('figcaption');
+        cap.className = 'sunset-cap';
+        const place = document.createElement('span');
+        place.className = 'cap-place';
+        place.textContent = item.place || 'A sunrise for Wesley';
+        const meta = document.createElement('span');
+        meta.className = 'cap-meta';
+        meta.textContent = [item.name, fmtShortDate(item.date)].filter(Boolean).join(' · ');
+        cap.append(place, meta);
+        figure.append(img, cap);
+        figure.tabIndex = 0;
+        figure.setAttribute('role', 'button');
+        figure.setAttribute('aria-label', `Open ${img.alt}`);
+        figure.addEventListener('click', () => openSunriseOverlay(i));
+        figure.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSunriseOverlay(i); }
+        });
         grid.appendChild(figure);
     });
     if (empty) empty.hidden = true;
     if (count) {
-        count.textContent = `${names.length.toLocaleString()} ${names.length === 1 ? 'sunrise' : 'sunrises'} shared so far`;
+        count.textContent = `${items.length.toLocaleString()} ${items.length === 1 ? 'sunrise' : 'sunrises'} shared so far`;
         count.hidden = false;
     }
+
+    // Full-screen viewer
+    const overlay = document.getElementById('sr-overlay');
+    const modalViewer = createSunriseViewer(document.getElementById('sr-modal'), items);
+    function openSunriseOverlay(i) {
+        modalViewer.show(i);
+        overlay.hidden = false;
+        document.body.style.overflow = 'hidden';
+        document.getElementById('sr-close').focus();
+    }
+    function closeSunriseOverlay() {
+        overlay.hidden = true;
+        document.body.style.overflow = '';
+    }
+    document.getElementById('sr-close').addEventListener('click', closeSunriseOverlay);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeSunriseOverlay();
+    });
+
+    // One at a time
+    const inlineViewer = createSunriseViewer(document.getElementById('sr-inline'), items);
+    inlineViewer.show(0);
+
+    // Weekly blend
+    const startMesh = setupSunriseMesh(items);
+
+    // View tabs
+    const views = document.getElementById('sr-views');
+    views.hidden = false;
+    let activeView = 'collage';
+    views.querySelectorAll('.sr-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+            activeView = tab.dataset.view;
+            views.querySelectorAll('.sr-tab').forEach((t) => {
+                const on = t === tab;
+                t.classList.toggle('is-active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            document.querySelectorAll('.sr-panel').forEach((panel) => {
+                panel.hidden = panel.dataset.panel !== activeView;
+            });
+            if (activeView === 'mesh') startMesh();
+        });
+    });
+
+    // Arrow keys: the open full-screen viewer, or the one-at-a-time view.
+    document.addEventListener('keydown', (e) => {
+        if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+        const target = !overlay.hidden ? modalViewer : (activeView === 'single' ? inlineViewer : null);
+        if (!target) return;
+        if (e.key === 'ArrowLeft') { e.preventDefault(); target.prev(); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); target.next(); }
+        if (e.key === 'Escape' && !overlay.hidden) closeSunriseOverlay();
+    });
 }
 
 // ---------- Add to Wesley's Gift ----------
