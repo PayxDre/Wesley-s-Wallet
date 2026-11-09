@@ -653,7 +653,7 @@ a:hover {
 /* ---------- Featured photo (framed, above the wall) ---------- */
 .featured-photo {
     max-width: 640px;
-    margin: 120px auto 72px;
+    margin: 160px auto 72px;
 }
 
 .featured-photo-frame img {
@@ -2414,15 +2414,21 @@ section,
 }
 
 /* Sitting on the top edge of a card, feet over the front */
+/* Only his feet rest on the card's top edge (inside its padding, never
+   over its contents), and the card leaves room above for him. */
 .lion-on-card {
-    top: -98px;
+    top: -106px;
     right: 32px;
 }
 
 .lion-on-frame {
     width: 150px;
-    top: -124px;
+    top: -136px;
     right: 40px;
+}
+
+.memory-form:has(> .lion-perch) {
+    margin-top: 132px;
 }
 
 .lion-on-card--left {
@@ -2438,7 +2444,7 @@ section,
 .lion-by-candle {
     width: 104px;
     bottom: 10px;
-    left: calc(50% - 158px);
+    right: calc(50% + 72px);
     transform: rotate(7deg);
     transform-origin: bottom right;
 }
@@ -2469,9 +2475,10 @@ section,
     .lion-on-card,
     .lion-on-frame {
         width: 92px;
-        top: -76px;
+        top: -82px;
         right: 18px;
     }
     .lion-on-card--left { right: auto; left: 18px; }
-    .featured-photo { margin-top: 96px; }
+    .featured-photo { margin-top: 112px; }
+    .memory-form:has(> .lion-perch) { margin-top: 104px; }
 }
