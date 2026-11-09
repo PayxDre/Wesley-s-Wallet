@@ -8,10 +8,9 @@ const CONFIG = {
     // Until then the wallet card shows a "being set up" state instead of
     // live numbers. (Earlier test address: bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293)
     walletAddress: null,
-    // Inbox for Memory Wall and sunset submissions (reviewed by the family's
-    // assistant before anything is posted). Assembled at runtime so the
-    // address isn't sitting as plain text in the page for spam scrapers.
-    submissionsEmail: ['bank', 'mail.grokbot.com'].join('@'),
+    // Inbox for Memory Wall and sunset submissions. While null, both show a
+    // "coming back soon" note instead of a share button.
+    submissionsEmail: null,
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
@@ -787,6 +786,14 @@ function setupMemoryForm() {
     const form = document.getElementById('memory-form');
     if (!form) return;
 
+    if (!CONFIG.submissionsEmail) {
+        const pending = document.createElement('p');
+        pending.className = 'form-pending';
+        pending.textContent = 'Sharing a memory will be open again soon.';
+        form.replaceWith(pending);
+        return;
+    }
+
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = form.elements.name.value.trim();
@@ -922,7 +929,12 @@ async function loadSunsets() {
     const btn = document.getElementById('sunset-email');
     if (!grid) return;
 
-    if (btn) {
+    if (btn && !CONFIG.submissionsEmail) {
+        const share = btn.closest('.sunset-share');
+        if (share) {
+            share.innerHTML = '<p class="form-note">Sending a sunset will be open again soon.</p>';
+        }
+    } else if (btn) {
         const subject = encodeURIComponent('A sunset for Wesley');
         const body = encodeURIComponent(
             'Attach your sunset photo to this email.\n\nWhere I watched it:\n\nMy name (optional):\n'
