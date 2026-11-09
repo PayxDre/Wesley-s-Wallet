@@ -133,6 +133,7 @@ body {
 .hero,
 .lion-divider,
 main,
+.next-page,
 .footer {
     position: relative;
     z-index: 1;
@@ -2229,4 +2230,64 @@ section,
         opacity: 1;
         transform: none;
     }
+}
+
+/* ---------- Next page button (bottom of every page) ---------- */
+.next-page {
+    padding: 8px 20px 72px;
+    text-align: center;
+}
+
+.next-page-link {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 420px;
+    padding: 26px 28px;
+    background: #fff;
+    border: 1px solid var(--gold-soft);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    color: var(--ink);
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.next-page-link:hover,
+.next-page-link:focus-visible {
+    color: var(--ink);
+    border-color: var(--gold);
+    transform: translateY(-3px);
+}
+
+.next-page-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+
+.next-page-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.7rem;
+    line-height: 1.2;
+}
+
+.next-page-arrow {
+    display: inline-block;
+    font-style: normal;
+    color: var(--gold);
+    transition: transform 0.2s ease;
+}
+
+.next-page-link:hover .next-page-arrow {
+    transform: translateX(4px);
+}
+
+.next-page-text {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
 }
