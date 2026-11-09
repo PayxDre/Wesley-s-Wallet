@@ -8,6 +8,7 @@
 // Public endpoints (used by the site's forms):
 //   POST /api/memory          JSON {name, memory, website}
 //   POST /api/sunset          multipart {photo, name?, place?, website}
+//   POST /api/photo           multipart {photo (image or video), name?, website}
 //
 // Review endpoints (require "Authorization: Bearer <BOT_KEY>"):
 //   GET    /api/pending              list pending submissions, oldest first
@@ -20,6 +21,8 @@ const MAX_NAME = 80;
 const MAX_MEMORY = 2000;
 const MAX_PLACE = 100;
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+// Cloudflare KV values max out at 25 MiB; leave headroom.
+const MAX_VIDEO_BYTES = 24 * 1024 * 1024;
 const SUBMISSIONS_PER_IP_PER_HOUR = 10;
 
 export default {
@@ -42,7 +45,8 @@ async function handleApi(request, env, url) {
     const method = request.method;
 
     if (path === '/api/memory' && method === 'POST') return submitMemory(request, env);
-    if (path === '/api/sunset' && method === 'POST') return submitSunset(request, env);
+    if (path === '/api/sunset' && method === 'POST') return submitMedia(request, env, 'sunset');
+    if (path === '/api/photo' && method === 'POST') return submitMedia(request, env, 'photo');
 
     if (path === '/api/pending' || path.startsWith('/api/pending/')) {
         // Tell "no key configured" apart from "wrong key" so setup problems
@@ -90,37 +94,53 @@ async function submitMemory(request, env) {
     return json({ ok: true });
 }
 
-async function submitSunset(request, env) {
+// Sunsets accept images only; photos of Wesley accept images or short videos.
+async function submitMedia(request, env, kind) {
     let form;
     try {
         form = await request.formData();
     } catch {
-        return json({ error: 'Invalid request.' }, 400);
+        return json({ error: 'Invalid request. If this is a video, it may be too large.' }, 400);
     }
     if (clean(form.get('website'))) return json({ ok: true });
 
-    const photo = form.get('photo');
-    if (!photo || typeof photo === 'string' || !photo.size) {
-        return json({ error: 'Please choose a photo.' }, 400);
+    const file = form.get('photo');
+    if (!file || typeof file === 'string' || !file.size) {
+        return json({ error: kind === 'photo' ? 'Please choose a photo or video.' : 'Please choose a photo.' }, 400);
     }
-    const type = photo.type || '';
-    if (!type.startsWith('image/')) return json({ error: 'Please choose an image file.' }, 400);
-    if (photo.size > MAX_PHOTO_BYTES) return json({ error: 'That photo is too large.' }, 400);
+    const type = file.type || '';
+    const isImage = type.startsWith('image/');
+    const isVideo = type.startsWith('video/');
+    if (kind === 'sunset' && !isImage) return json({ error: 'Please choose an image file.' }, 400);
+    if (kind === 'photo' && !isImage && !isVideo) {
+        return json({ error: 'Please choose a photo or video file.' }, 400);
+    }
+    if (isImage && file.size > MAX_PHOTO_BYTES) return json({ error: 'That photo is too large.' }, 400);
+    if (isVideo && file.size > MAX_VIDEO_BYTES) {
+        return json({ error: 'That video is too large. Please choose one under 24 MB (about 20 seconds).' }, 400);
+    }
 
     const name = clean(form.get('name')).slice(0, MAX_NAME);
-    const place = clean(form.get('place')).slice(0, MAX_PLACE);
+    const place = kind === 'sunset' ? clean(form.get('place')).slice(0, MAX_PLACE) : undefined;
     if (!(await withinRateLimit(request, env))) {
         return json({ error: 'Too many submissions. Please try again later.' }, 429);
     }
 
     const id = newId();
-    await env.SUBMISSIONS.put(`photo:${id}`, await photo.arrayBuffer(), {
+    await env.SUBMISSIONS.put(`photo:${id}`, await file.arrayBuffer(), {
         metadata: { contentType: type },
     });
-    await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify({
-        id, type: 'sunset', name, place, received: new Date().toISOString(),
-        photo: { contentType: type, bytes: photo.size, url: `/api/pending/${id}/photo` },
-    }));
+    const record = {
+        id, type: kind, name, received: new Date().toISOString(),
+        photo: {
+            kind: isVideo ? 'video' : 'image',
+            contentType: type,
+            bytes: file.size,
+            url: `/api/pending/${id}/photo`,
+        },
+    };
+    if (kind === 'sunset') record.place = place;
+    await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify(record));
     return json({ ok: true });
 }
 

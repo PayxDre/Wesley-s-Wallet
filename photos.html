@@ -58,6 +58,24 @@
                     </div>
                     <p class="featured-caption" id="featured-caption" hidden></p>
                 </div>
+
+                <form class="memory-form upload-form" id="photo-form">
+                    <h3 class="sunset-form-title">Share a photo or video of Wesley</h3>
+                    <p class="upload-lede">Have a moment of Wesley we haven't seen? It will join the others here.</p>
+                    <label class="sunset-pick">
+                        <input type="file" name="photo" accept="image/*,video/*" required />
+                        <img class="sunset-preview upload-preview-img" alt="" hidden />
+                        <video class="sunset-preview upload-preview-video" muted playsinline loop hidden></video>
+                        <span class="sunset-pick-text upload-pick-text">Choose a photo or video</span>
+                    </label>
+                    <label>
+                        <span>Your name <em>(optional)</em></span>
+                        <input type="text" name="name" maxlength="80" autocomplete="name" />
+                    </label>
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Share</button>
+                    <p class="form-note">Added to the gallery after a quick look. Videos can be up to 24 MB (about 20 seconds).</p>
+                </form>
             </div>
         </section>
     </main>

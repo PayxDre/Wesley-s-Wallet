@@ -345,27 +345,37 @@ const POSTER_RX = /-poster\.(jpe?g|png|webp)$/i;
 const MAIN_RX = /^main\./i;
 const FEATURED_RX = /^featured\./i;
 
-async function loadGallery() {
-    const grid = document.getElementById('photo-grid');
-    const empty = document.getElementById('gallery-empty');
-    if (!grid) return;
-
+async function getPhotoNames() {
     let names = readPhotoCache();
     if (!names) {
         names = await fetchPhotoList();
         if (names.length) writePhotoCache(names);
     }
+    return names;
+}
+
+// The home page shows the Main.* photo at the top.
+async function loadHeroPhoto() {
+    if (!document.getElementById('hero-photo')) return;
+    const names = await getPhotoNames();
+    const mainName = names.find((n) => MAIN_RX.test(n) && IMAGE_RX.test(n));
+    if (mainName) applyHeroPhoto(mainName);
+}
+
+async function loadGallery() {
+    const grid = document.getElementById('photo-grid');
+    const empty = document.getElementById('gallery-empty');
+    if (!grid) return;
+
+    let names = await getPhotoNames();
 
     // Posters live alongside videos; never display them as standalone tiles.
     const allNames = names.slice();
     const posters = new Set(allNames.filter((n) => POSTER_RX.test(n)));
     names = allNames.filter((n) => !POSTER_RX.test(n));
 
-    const mainName = names.find((n) => MAIN_RX.test(n) && IMAGE_RX.test(n));
-    if (mainName) {
-        applyHeroPhoto(mainName);
-        names = names.filter((n) => n !== mainName);
-    }
+    // Main.* is the home page's hero photo; keep it out of the photo wall.
+    names = names.filter((n) => !MAIN_RX.test(n));
 
     const featuredName = names.find((n) => FEATURED_RX.test(n) && IMAGE_RX.test(n));
     if (featuredName) {
@@ -1015,36 +1025,58 @@ async function shrinkPhoto(file) {
     }
 }
 
-function setupSunsetForm() {
-    const form = document.getElementById('sunset-form');
+const MAX_VIDEO_BYTES = 24 * 1024 * 1024;
+
+// Shared by the sunset form and the photos-of-Wesley form. Images are
+// shrunk in the browser (see shrinkPhoto); videos are sent as they are.
+function setupUploadForm(formId, endpoint, successText, fields) {
+    const form = document.getElementById(formId);
     if (!form) return;
     const input = form.elements.photo;
-    const preview = document.getElementById('sunset-preview');
-    const pickText = document.getElementById('sunset-pick-text');
+    const img = form.querySelector('.upload-preview-img');
+    const video = form.querySelector('.upload-preview-video');
+    const pickText = form.querySelector('.upload-pick-text');
+    const note = form.querySelector('.form-note');
+    const originalNote = note ? note.textContent : '';
 
     input.addEventListener('change', () => {
         const file = input.files && input.files[0];
         if (!file) return;
-        if (preview) {
-            preview.src = URL.createObjectURL(file);
-            preview.hidden = false;
-            preview.onerror = () => { preview.hidden = true; };
+        const url = URL.createObjectURL(file);
+        const isVideo = file.type.startsWith('video/');
+        if (img) img.hidden = true;
+        if (video) { video.hidden = true; video.pause(); }
+        if (isVideo && video) {
+            video.src = url;
+            video.hidden = false;
+            video.play().catch(() => {});
+        } else if (img) {
+            img.src = url;
+            img.hidden = false;
+            img.onerror = () => { img.hidden = true; };
         }
-        if (pickText) pickText.textContent = 'Change photo';
+        if (pickText) pickText.textContent = isVideo ? 'Change video' : 'Change photo';
+        if (note) { note.textContent = originalNote; note.classList.remove('form-error'); }
     });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const file = input.files && input.files[0];
         if (!file) return;
+        const isVideo = file.type.startsWith('video/');
+        if (isVideo && file.size > MAX_VIDEO_BYTES) {
+            if (note) {
+                note.textContent = 'That video is too large. Please choose one under 24 MB (about 20 seconds).';
+                note.classList.add('form-error');
+            }
+            return;
+        }
         const data = new FormData();
-        const photo = await shrinkPhoto(file);
-        data.append('photo', photo, photo === file ? file.name : 'sunset.jpg');
-        data.append('place', form.elements.place.value);
-        data.append('name', form.elements.name.value);
+        const upload = isVideo ? file : await shrinkPhoto(file);
+        data.append('photo', upload, upload === file ? file.name : 'photo.jpg');
+        for (const field of fields) data.append(field, form.elements[field].value);
         data.append('website', form.elements.website.value);
-        await submitToSite(form, '/api/sunset', { method: 'POST', body: data },
-            'Thank you. Your sunset has been received and will join the collage after a quick look.');
+        await submitToSite(form, endpoint, { method: 'POST', body: data }, successText);
     });
 }
 
@@ -1096,7 +1128,13 @@ function buildFloatingBackground() {
     setupShareButton();
     setupGift();
     loadSunsets();
-    setupSunsetForm();
+    setupUploadForm('sunset-form', '/api/sunset',
+        'Thank you. Your sunset has been received and will join the collage after a quick look.',
+        ['place', 'name']);
+    setupUploadForm('photo-form', '/api/photo',
+        'Thank you. Your photo has been received and will join the gallery after a quick look.',
+        ['name']);
+    loadHeroPhoto();
     loadLetters();
     loadMemories();
     setupMemoryForm();
