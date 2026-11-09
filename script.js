@@ -8,8 +8,9 @@ const CONFIG = {
     // Until then the wallet card shows a "being set up" state instead of
     // live numbers. (Earlier test address: bc1qlqkdygyxay5w0hzgts3yxp6wautrqxtyw4h293)
     walletAddress: null,
-    // Inbox for Memory Wall and sunset submissions. While null, both show a
-    // "coming back soon" note instead of a share button.
+    // Inbox for sunset photo submissions. While null, the sunset section
+    // shows a "coming back soon" note instead of a send button. (Memory Wall
+    // submissions go through Formspree; see setupMemoryForm.)
     submissionsEmail: null,
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
@@ -779,60 +780,43 @@ async function loadMemories() {
     });
 }
 
-// Submitting opens the visitor's email app with their name and memory
-// already written, addressed to the submissions inbox. Nothing is posted
-// automatically; approved memories are added to assets/memories.json.
+// Memory Wall submissions post to Formspree, which forwards them to the
+// family's review inbox (set in the Formspree dashboard), so no email
+// address appears on the site. Approved memories go in assets/memories.json.
 function setupMemoryForm() {
     const form = document.getElementById('memory-form');
     if (!form) return;
 
-    if (!CONFIG.submissionsEmail) {
-        const pending = document.createElement('p');
-        pending.className = 'form-pending';
-        pending.textContent = 'Sharing a memory will be open again soon.';
-        form.replaceWith(pending);
-        return;
-    }
-
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = form.elements.name.value.trim();
-        const memory = form.elements.memory.value.trim();
-        if (!name || !memory) return;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const note = form.querySelector('.form-note');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending…';
 
-        const subject = 'A new memory for Wesley';
-        const body = `Name: ${name}\n\nMemory:\n${memory}\n`;
-        window.location.href =
-            `mailto:${CONFIG.submissionsEmail}` +
-            `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-        // Confirmation, with a fallback for devices that have no email app set up.
-        const done = document.createElement('div');
-        done.className = 'form-success';
-        const lead = document.createElement('p');
-        lead.innerHTML = 'Your email app should now be open with your memory ready. Just press <strong>Send</strong>.';
-        const fallback = document.createElement('p');
-        fallback.className = 'form-fallback';
-        fallback.append('If nothing opened, email your memory to ');
-        const addr = document.createElement('span');
-        addr.className = 'form-address';
-        addr.textContent = CONFIG.submissionsEmail;
-        fallback.append(addr, '.');
-        const copy = document.createElement('button');
-        copy.type = 'button';
-        copy.className = 'gift-copy';
-        copy.textContent = 'Copy my message';
-        copy.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(body);
-                copy.textContent = 'Copied';
-                setTimeout(() => { copy.textContent = 'Copy my message'; }, 2000);
-            } catch (err) {
-                console.warn('copy failed', err);
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { Accept: 'application/json' },
+            });
+            if (res.ok) {
+                const success = document.createElement('p');
+                success.className = 'form-success';
+                success.textContent = 'Thank you. Your memory has been received and will appear here after a brief review.';
+                form.replaceWith(success);
+            } else {
+                throw new Error('submit failed');
             }
-        });
-        done.append(lead, fallback, copy);
-        form.replaceWith(done);
+        } catch (err) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            if (note) {
+                note.textContent = 'Sorry, we could not send your message. Please try again in a moment.';
+                note.style.color = '#a85a4a';
+            }
+        }
     });
 }
 
