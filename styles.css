@@ -1559,38 +1559,7 @@ section,
     background: var(--ink);
 }
 
-/* ---------- Little Lion Family Co. (draft page) ---------- */
-.draft-banner {
-    max-width: 720px;
-    margin: 24px auto 0;
-    padding: 12px 18px;
-    border: 1px dashed #c9706a;
-    border-radius: 10px;
-    background: rgba(201, 112, 106, 0.08);
-    color: var(--ink);
-    font-size: 0.9rem;
-    text-align: center;
-}
-
-.ph {
-    background: rgba(217, 191, 133, 0.28);
-    border-radius: 4px;
-    padding: 0 4px;
-    font-style: italic;
-}
-
-.ph-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1.5px dashed var(--gold-soft);
-    border-radius: var(--radius);
-    background: var(--bg-soft);
-    color: var(--ink-soft);
-    font-style: italic;
-    font-size: 0.9rem;
-}
-
+/* ---------- Little Lion Family Co. page ---------- */
 .ll-logo {
     display: block;
     width: 160px;
