@@ -1627,9 +1627,61 @@ section,
     transform: none;
 }
 
-.ll-offer-photo {
-    aspect-ratio: 4 / 3;
-    margin-bottom: 6px;
+.ll-quote {
+    margin: 36px auto 0;
+    max-width: 600px;
+    padding: 28px 32px;
+    background: #fff;
+    border-left: 3px solid var(--gold);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    box-shadow: var(--shadow);
+}
+
+.ll-quote p {
+    margin: 0 0 12px;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.35rem;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.ll-quote cite {
+    font-style: normal;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+
+.ll-icon {
+    font-size: 1.5rem;
+    color: var(--gold);
+    line-height: 1;
+}
+
+.ll-book {
+    cursor: pointer;
+}
+
+.ll-book:hover {
+    transform: translateY(-3px);
+}
+
+.ll-link {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+}
+
+.ll-note {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    margin: 28px auto 0;
+    max-width: 520px;
 }
 
 .ll-actions {
@@ -1657,13 +1709,15 @@ section,
     background: var(--ink);
 }
 
-.ll-btn-secondary.is-placeholder {
+.ll-btn.ll-btn-outline {
     background: none;
-    color: var(--ink-soft);
-    border: 1px dashed var(--gold-soft);
-    letter-spacing: 0.06em;
-    text-transform: none;
-    font-style: italic;
+    color: var(--gold);
+    border: 1px solid var(--gold-soft);
+}
+
+.ll-btn.ll-btn-outline:hover {
+    background: var(--gold);
+    border-color: var(--gold);
 }
 
 /* ---------- Sunrises: captions, views, viewer, weekly blend ---------- */
