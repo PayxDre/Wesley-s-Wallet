@@ -36,6 +36,11 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Anything marked hidden stays hidden, even if a class gives it a layout. */
+[hidden] {
+    display: none !important;
+}
+
 /* ---------- Floating background ---------- */
 .floating-bg {
     position: fixed;
