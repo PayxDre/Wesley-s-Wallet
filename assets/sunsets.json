@@ -38,5 +38,13 @@
     "name": "Erin Stuhlmiller",
     "lat": 12.5211,
     "lon": -69.9683
+  },
+  {
+    "file": "2026-11-10-ocean-city.jpg",
+    "date": "2026-11-10",
+    "place": "Ocean City, NJ",
+    "name": "Nat",
+    "lat": 39.2776,
+    "lon": -74.5746
   }
 ]
