@@ -46,5 +46,13 @@
     "name": "Nat",
     "lat": 39.2776,
     "lon": -74.5746
+  },
+  {
+    "file": "2026-11-10-avalon.jpg",
+    "date": "2026-11-10",
+    "place": "Avalon, NJ",
+    "name": "Nat, Naya, Meg, & Matt",
+    "lat": 39.1012,
+    "lon": -74.7177
   }
 ]
