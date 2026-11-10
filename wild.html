@@ -60,7 +60,6 @@
                 <div class="sr-views" id="sr-views" role="tablist" aria-label="Ways to view the photos" hidden>
                     <button type="button" class="sr-tab is-active" data-view="collage" role="tab" aria-selected="true">Collage</button>
                     <button type="button" class="sr-tab" data-view="single" role="tab" aria-selected="false">One at a time</button>
-                    <button type="button" class="sr-tab" data-view="mesh" role="tab" aria-selected="false">Blended into one</button>
                     <button type="button" class="sr-tab" data-view="map" role="tab" aria-selected="false">Map</button>
                 </div>
 
@@ -70,20 +69,6 @@
 
                 <div class="sr-panel" data-panel="single" hidden>
                     <div class="sr-viewer sr-inline" id="sr-inline"></div>
-                </div>
-
-                <div class="sr-panel" data-panel="mesh" hidden>
-                    <div class="sr-mesh-frame">
-                        <p class="sr-blend-status" id="sr-blend-status" hidden>Gathering photos…</p>
-                        <canvas id="sr-mesh-canvas" width="1440" height="800" aria-label="Every shared photo blended into one picture" hidden></canvas>
-                    </div>
-                    <div class="sr-mesh-actions">
-                        <button type="button" class="sr-chip" id="sr-mesh-download" disabled>Download image</button>
-                    </div>
-                    <p class="form-note" id="sr-blend-note">
-                        Every moment shared so far, lined up along one horizon and softly
-                        blended into a single picture, oldest on the left and newest on the right.
-                    </p>
                 </div>
 
                 <div class="sr-panel" data-panel="map" hidden>
