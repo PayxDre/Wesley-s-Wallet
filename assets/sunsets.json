@@ -30,5 +30,13 @@
     "name": "Andrew McGreevy",
     "lat": 40.3232,
     "lon": -75.6081
+  },
+  {
+    "file": "2026-11-10-aruba.jpg",
+    "date": "2026-11-10",
+    "place": "Aruba",
+    "name": "Erin Stuhlmiller",
+    "lat": 12.5211,
+    "lon": -69.9683
   }
 ]
