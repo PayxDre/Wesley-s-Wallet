@@ -138,6 +138,17 @@ async function loadGallery() {
         count.hidden = false;
     }
 
+    // Optional captions: assets/photo-captions.json maps a file name to a
+    // line about the photo, shown when it's opened full screen.
+    try {
+        const res = await fetch('assets/photo-captions.json', { cache: 'no-cache' });
+        const captions = res.ok ? await res.json() : {};
+        items.forEach((it) => {
+            const c = captions && typeof captions[it.name] === 'string' ? captions[it.name].trim() : '';
+            if (c) it.caption = c;
+        });
+    } catch { /* captions are optional */ }
+
     await addPhotoSignatures(items);
     items.forEach((it) => { it.figure = makePhotoTile(it); });
 
@@ -306,7 +317,7 @@ function makePhotoTile(it) {
         figure.setAttribute('aria-label', 'Play this video of Wesley');
     } else {
         element = document.createElement('img');
-        element.alt = 'Wesley';
+        element.alt = it.caption || 'Wesley';
         element.loading = 'lazy';
         setImageWithFallback(element, it.name, 700, figure);
         figure.setAttribute('aria-label', 'View this photo of Wesley');
@@ -590,10 +601,37 @@ function setupCandle() {
 
     let alreadyLit = false;
     try { alreadyLit = !!localStorage.getItem(litKey); } catch { /* private mode */ }
+    // Once a candle is lit, offer a place to leave a few words with it.
+    const noteForm = document.getElementById('candle-note-form');
+    const noteKey = `${litKey}-note`;
+    const offerNote = () => {
+        let left = false;
+        try { left = !!localStorage.getItem(noteKey); } catch { /* private mode */ }
+        if (noteForm && !left) noteForm.hidden = false;
+    };
+    if (noteForm) {
+        noteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await submitToSite(noteForm, '/api/candle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: noteForm.elements.message.value,
+                    name: noteForm.elements.name.value,
+                    website: noteForm.elements.website.value,
+                }),
+            }, 'Thank you. Your words will appear here after a quick look.');
+            if (!document.body.contains(noteForm)) {
+                try { localStorage.setItem(noteKey, '1'); } catch { /* private mode */ }
+            }
+        });
+    }
+
     if (alreadyLit) {
         btn.classList.add('lit');
         status.classList.add('is-lit');
         status.textContent = 'Your candle is lit for Wesley.';
+        offerNote();
     }
 
     btn.addEventListener('click', async () => {
@@ -602,6 +640,7 @@ function setupCandle() {
         status.classList.add('is-lit');
         status.textContent = 'Your candle is lit for Wesley.';
         try { localStorage.setItem(litKey, new Date().toISOString()); } catch {}
+        offerNote();
         const [newCount, dayCount] = await Promise.all([
             incrementCandleCount(),
             dayKey ? incrementCandleCount(dayKey) : null,
@@ -766,6 +805,53 @@ async function loadActs() {
     });
 }
 
+// ---------- Words left with candles ----------
+async function loadCandleNotes() {
+    const box = document.getElementById('candle-notes');
+    if (!box) return;
+    const notes = (await fetchJSONList('assets/candles.json'))
+        .filter((n) => n && n.message)
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        .slice(0, 6);
+    if (!notes.length) return;
+    box.innerHTML = notes.map((n) => `
+        <p class="candle-note-item">
+            <span class="candle-note-flame" aria-hidden="true"></span>
+            <span>&ldquo;${escapeHTML(n.message)}&rdquo;${n.name ? ` <em>${escapeHTML(n.name)}</em>` : ''}</span>
+        </p>`).join('');
+    box.hidden = false;
+}
+
+// ---------- What's new (home page) ----------
+// A short list of what has been shared in the last two weeks, so returning
+// visitors can see at a glance that there is something new.
+async function loadWhatsNew() {
+    const wrap = document.getElementById('whats-new');
+    const out = document.getElementById('whats-new-items');
+    if (!wrap || !out) return;
+    const since = new Date();
+    since.setDate(since.getDate() - 14);
+    const cutoff = todayKey(since);
+    const recent = (list) => list.filter((x) => x && (x.date || '').slice(0, 10) >= cutoff);
+    const [memories, wild, acts, candles] = (await Promise.all([
+        fetchJSONList('assets/memories.json'),
+        fetchJSONList('assets/sunsets.json'),
+        fetchJSONList('assets/acts.json'),
+        fetchJSONList('assets/candles.json'),
+    ])).map(recent);
+    const items = [];
+    const add = (href, text) => items.push(`<a href="${href}">${escapeHTML(text)}</a>`);
+    if (memories.length === 1) add('memories.html', memories[0].name ? `A new memory from ${memories[0].name}` : 'A new memory');
+    else if (memories.length) add('memories.html', `${memories.length} new memories`);
+    if (wild.length === 1) add('wild.html', wild[0].place ? `A new moment from ${wild[0].place}` : 'A new moment in the wild');
+    else if (wild.length) add('wild.html', `${wild.length} new moments in the wild`);
+    if (acts.length) add('kindness.html', acts.length === 1 ? 'A new lion-hearted act' : `${acts.length} new lion-hearted acts`);
+    if (candles.length) add('#candle', candles.length === 1 ? 'New words left with a candle' : `${candles.length} new candle messages`);
+    if (!items.length) return;
+    out.innerHTML = items.join('<span aria-hidden="true">&middot;</span>');
+    wrap.hidden = false;
+}
+
 // ---------- Events ----------
 // assets/events.json: [{"date": "2027-04-20", "title": "...", "time": "...",
 // "place": "...", "details": "...", "link": "https://..."}]. Past events hide
@@ -928,6 +1014,7 @@ function viewerParts() {
             <button type="button" class="lb-arrow lb-prev" aria-label="Previous photo">&#8249;</button>
             <button type="button" class="lb-arrow lb-next" aria-label="Next photo">&#8250;</button>
             <video class="lb-video" controls playsinline hidden></video>
+            <p class="lb-caption"></p>
             <p class="lb-count" aria-live="polite"></p>`);
         box.querySelector('.lb-prev').addEventListener('click', (e) => { e.stopPropagation(); showPhoto(viewerIndex - 1); });
         box.querySelector('.lb-next').addEventListener('click', (e) => { e.stopPropagation(); showPhoto(viewerIndex + 1); });
@@ -952,6 +1039,7 @@ function viewerParts() {
         img: box.querySelector('img'),
         video: box.querySelector('.lb-video'),
         count: box.querySelector('.lb-count'),
+        caption: box.querySelector('.lb-caption'),
         arrows: box.querySelectorAll('.lb-arrow'),
     };
 }
@@ -982,6 +1070,8 @@ function showPhoto(i) {
         v.img.src = thumbPhotoURL(it.name, 1600);
     }
     v.count.textContent = `${viewerIndex + 1} of ${n}`;
+    v.caption.textContent = it.caption || '';
+    v.img.alt = it.caption || 'Wesley';
     v.arrows.forEach((a) => { a.hidden = n < 2; });
     // Warm up the neighbors so arrows feel instant.
     [viewerIndex + 1, viewerIndex - 1].forEach((j) => {
@@ -1009,6 +1099,7 @@ function openLightbox(src) {
     v.img.onerror = null;
     v.img.src = src;
     v.count.textContent = '';
+    v.caption.textContent = '';
     v.arrows.forEach((a) => { a.hidden = true; });
     v.box.dataset.single = '1';
     v.box.hidden = false;
@@ -1513,7 +1604,7 @@ function buildFloatingBackground() {
         ['place', 'name']);
     setupUploadForm('photo-form', '/api/photo',
         'Thank you. Your photo has been received and will join the gallery after a quick look.',
-        ['name']);
+        ['name', 'caption']);
     loadHeroPhoto();
     addCompanionPhoto();
     loadMemories();
@@ -1523,5 +1614,7 @@ function buildFloatingBackground() {
     setupJSONForm('act-form', '/api/act', ['act', 'place', 'name'],
         'Thank you for being lion-hearted. Your act will appear here after a quick look.');
     loadEvents();
+    loadCandleNotes();
+    loadWhatsNew();
     setupKeepsake();
 })();

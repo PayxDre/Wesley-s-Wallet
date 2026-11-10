@@ -9,8 +9,9 @@
 // Public endpoints (used by the site's forms):
 //   POST /api/memory          JSON {name, memory, website}
 //   POST /api/sunset          multipart {photo, name?, place?, website}
-//   POST /api/photo           multipart {photo (image or video), name?, website}
+//   POST /api/photo           multipart {photo (image or video), name?, caption?, website}
 //   POST /api/act             JSON {name?, act, place?, website}   (a lion-hearted act)
+//   POST /api/candle          JSON {name?, message, website}       (a few words with a candle)
 //
 // Review endpoints (require "Authorization: Bearer <BOT_KEY>"):
 //   GET    /api/pending              list pending submissions, oldest first
@@ -30,6 +31,8 @@ const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 24 * 1024 * 1024;
 const SUBMISSIONS_PER_IP_PER_HOUR = 10;
 const MAX_ACT = 600;
+const MAX_CANDLE = 140;
+const MAX_CAPTION = 160;
 
 
 export default {
@@ -55,6 +58,7 @@ async function handleApi(request, env, url) {
     if (path === '/api/sunset' && method === 'POST') return submitMedia(request, env, 'sunset');
     if (path === '/api/photo' && method === 'POST') return submitMedia(request, env, 'photo');
     if (path === '/api/act' && method === 'POST') return submitAct(request, env);
+    if (path === '/api/candle' && method === 'POST') return submitCandle(request, env);
     if (path === '/api/letters/backup' && method === 'GET') {
         if (!configuredKey(env)) {
             return json({ error: 'BOT_KEY is not set on this worker. Add it under Settings > Variables and Secrets as type Secret.' }, 503);
@@ -165,6 +169,24 @@ async function deleteLetter(env, id) {
     return json({ ok: true });
 }
 
+async function submitCandle(request, env) {
+    const body = await readJSON(request);
+    if (!body) return json({ error: 'Invalid request.' }, 400);
+    if (clean(body.website)) return json({ ok: true });
+    const message = clean(body.message);
+    const name = clean(body.name).slice(0, MAX_NAME);
+    if (!message) return json({ error: 'Please add a few words first.' }, 400);
+    if (message.length > MAX_CANDLE) return json({ error: 'Please keep it to a sentence or two.' }, 400);
+    if (!(await withinRateLimit(request, env))) {
+        return json({ error: 'Too many submissions. Please try again later.' }, 429);
+    }
+    const id = newId();
+    await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify({
+        id, type: 'candle', name, message, received: new Date().toISOString(),
+    }));
+    return json({ ok: true });
+}
+
 // Sunsets accept images only; photos of Wesley accept images or short videos.
 async function submitMedia(request, env, kind) {
     let form;
@@ -211,6 +233,7 @@ async function submitMedia(request, env, kind) {
         },
     };
     if (kind === 'sunset') record.place = place;
+    if (kind === 'photo') record.caption = clean(form.get('caption')).slice(0, MAX_CAPTION);
     await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify(record));
     return json({ ok: true });
 }

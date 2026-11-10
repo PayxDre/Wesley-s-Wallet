@@ -65,6 +65,21 @@
     </header>
 
     <main>
+        <section class="welcome" id="welcome" aria-label="Welcome">
+            <div class="container narrow">
+                <p class="start-here">
+                    <strong>New here?</strong>
+                    <a href="#story">Read his story</a>,
+                    <a href="#candle">light a candle</a>, then
+                    <a href="memories.html">leave a memory</a>.
+                </p>
+                <div class="whats-new" id="whats-new" hidden>
+                    <span class="whats-new-label">New lately</span>
+                    <span class="whats-new-items" id="whats-new-items"></span>
+                </div>
+            </div>
+        </section>
+
         <section id="story" class="section story">
             <div class="container narrow">
                 <h2 class="section-title">His Story</h2>
@@ -129,6 +144,19 @@
                     <span class="candle-count-noun" id="candle-count-noun">candles lit in his memory</span>
                 </p>
                 <p class="candle-today" id="candle-today" hidden></p>
+
+                <form class="candle-note" id="candle-note-form" hidden>
+                    <label for="candle-note-message">Leave a few words with your candle <em>(optional)</em></label>
+                    <input type="text" id="candle-note-message" name="message" required maxlength="140" placeholder="e.g. Thinking of you today, Wes" />
+                    <div class="candle-note-row">
+                        <input type="text" name="name" maxlength="80" autocomplete="name" placeholder="Your name (optional)" aria-label="Your name (optional)" />
+                        <button type="submit">Add</button>
+                    </div>
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <p class="form-note">Your words will appear here after a quick look.</p>
+                </form>
+
+                <div class="candle-notes" id="candle-notes" hidden></div>
                 <p class="calendar-link">
                     <a href="assets/wesleys-days.ics" download>Add Wesley's birthday and remembrance day to your calendar</a>
                 </p>

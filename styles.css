@@ -2559,3 +2559,189 @@ section,
 @media print {
     .companion { display: none !important; }
 }
+
+/* ---------- Welcome strip (home) ---------- */
+.welcome {
+    position: relative;
+    z-index: 1;
+    padding: 28px 0 0;
+    text-align: center;
+}
+
+.start-here {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+    line-height: 1.7;
+}
+
+.start-here strong {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.2rem;
+    color: var(--gold);
+    margin-right: 4px;
+}
+
+.start-here a,
+.whats-new-items a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--gold-soft);
+    text-underline-offset: 3px;
+}
+
+.start-here a:hover,
+.whats-new-items a:hover { color: var(--gold); }
+
+.whats-new {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 14px;
+    margin-top: 18px;
+    padding: 10px 20px;
+    background: #fff;
+    border: 1px solid var(--gold-soft);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    font-size: 0.9rem;
+}
+
+.whats-new-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+
+.whats-new-items {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 10px;
+}
+
+.whats-new-items span { color: var(--gold-soft); }
+
+/* ---------- Words left with a candle ---------- */
+.candle-note {
+    max-width: 440px;
+    margin: 26px auto 0;
+    display: grid;
+    gap: 10px;
+    text-align: center;
+}
+
+.candle-note label {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+}
+
+.candle-note input[type="text"] {
+    font: inherit;
+    font-size: 1rem;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    width: 100%;
+    min-width: 0;
+}
+
+.candle-note input[type="text"]:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184, 146, 74, 0.15);
+}
+
+.candle-note-row {
+    display: flex;
+    gap: 10px;
+}
+
+.candle-note button {
+    flex: 0 0 auto;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--gold);
+    color: #fff;
+    cursor: pointer;
+}
+
+.candle-note button:hover:not(:disabled) { background: var(--ink); }
+.candle-note .form-note { margin: 0; }
+
+.candle-notes {
+    max-width: 520px;
+    margin: 30px auto 0;
+    display: grid;
+    gap: 10px;
+}
+
+.candle-note-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0;
+    text-align: left;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.12rem;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+.candle-note-item em {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-left: 4px;
+    white-space: nowrap;
+}
+
+.candle-note-flame {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 12px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: radial-gradient(circle at 50% 70%, #ffd87a, #ffb84a);
+    transform: translateY(1px);
+}
+
+/* ---------- Photo captions in the viewer ---------- */
+.lb-caption {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 40px;
+    margin: 0;
+    text-align: center;
+    color: #f3ede4;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+}
+
+.lb-caption:empty { display: none; }
+
+@media (max-width: 600px) {
+    .whats-new-items { flex-direction: column; gap: 4px; }
+    .whats-new-items span { display: none; }
+}
+
+/* A darker backdrop so captions stay easy to read */
+.lightbox { background: rgba(30, 27, 23, 0.96); }
