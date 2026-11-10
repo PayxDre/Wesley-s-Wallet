@@ -62,6 +62,30 @@ async function loadHeroPhoto() {
     if (mainName) applyHeroPhoto(mainName);
 }
 
+// On pages without photos of him, Wesley's main photo rests softly at the
+// side of the screen while people read, faded so it never competes with
+// the words. Pages opt in with <body data-companion>.
+async function addCompanionPhoto() {
+    if (!document.body.hasAttribute('data-companion')) return;
+    const names = await getPhotoNames();
+    const mainName = names.find((n) => MAIN_RX.test(n) && IMAGE_RX.test(n));
+    if (!mainName) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'companion';
+    wrap.setAttribute('aria-hidden', 'true');
+    const img = document.createElement('img');
+    img.alt = '';
+    img.decoding = 'async';
+    img.addEventListener('load', () => wrap.classList.add('is-shown'));
+    let triedLocal = false;
+    img.addEventListener('error', () => {
+        if (!triedLocal) { triedLocal = true; img.src = localPhotoURL(mainName); } else { wrap.remove(); }
+    });
+    img.src = thumbPhotoURL(mainName, 900);
+    wrap.appendChild(img);
+    document.body.prepend(wrap);
+}
+
 async function loadGallery() {
     const grid = document.getElementById('photo-grid');
     const empty = document.getElementById('gallery-empty');
@@ -1484,6 +1508,7 @@ function buildFloatingBackground() {
         'Thank you. Your photo has been received and will join the gallery after a quick look.',
         ['name']);
     loadHeroPhoto();
+    addCompanionPhoto();
     loadMemories();
     setupMemoryForm();
     loadGallery();
