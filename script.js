@@ -735,87 +735,6 @@ async function loadActs() {
     });
 }
 
-// ---------- Letters for later ----------
-// Sealed letters are kept by the site's worker, which only sends a letter's
-// words on or after its opening day. assets/letters.json is still read for
-// any letters the family added by hand.
-async function loadLetters() {
-    const container = document.getElementById('letters-list');
-    if (!container) return;
-    let sealed = [];
-    try {
-        const res = await fetch('/api/letters');
-        if (res.ok) sealed = (await res.json()).letters || [];
-    } catch (e) {
-        console.warn('letters unavailable', e);
-    }
-    const today = todayKey();
-    const handAdded = (await fetchJSONList('assets/letters.json')).map((l) => {
-        const openOn = (l.unlocksOn || l.openOn || '').slice(0, 10);
-        const open = !!openOn && openOn <= today;
-        return { from: l.from, to: l.to, title: l.title, openOn, open, letter: open ? (l.body || l.letter) : undefined };
-    });
-    const letters = sealed.concat(handAdded).filter((l) => l.openOn);
-    if (!letters.length) return;
-    letters.sort((a, b) => a.openOn.localeCompare(b.openOn));
-
-    const waiting = letters.filter((l) => !l.open).length;
-    const opened = letters.length - waiting;
-    const count = document.getElementById('letters-count');
-    if (count) {
-        const parts = [];
-        if (waiting) parts.push(`${waiting} sealed ${waiting === 1 ? 'letter' : 'letters'} waiting`);
-        if (opened) parts.push(`${opened} opened`);
-        count.textContent = parts.join(', ');
-        count.hidden = false;
-    }
-
-    container.innerHTML = '';
-    const now = parseLocalDate(today);
-    letters.forEach((l) => {
-        const card = document.createElement('article');
-        card.className = `letter-card ${l.open ? 'open' : 'locked'}`;
-        const to = escapeHTML(l.to || '');
-        const from = escapeHTML(l.from || '');
-        const title = l.title ? `<h3 class="letter-title">${escapeHTML(l.title)}</h3>` : '';
-        if (l.open) {
-            card.innerHTML = `
-                <p class="letter-meta">To ${to} &middot; From ${from} &middot; Opened ${fmtLongDate(l.openOn)}</p>
-                ${title}
-                <p class="letter-body">${escapeHTML(l.letter || '').replace(/\n/g, '<br />')}</p>
-                <p class="letter-signature">${from}</p>`;
-        } else {
-            const days = Math.max(1, Math.round((parseLocalDate(l.openOn) - now) / 86400000));
-            card.innerHTML = `
-                <div class="letter-seal" aria-hidden="true">✉</div>
-                <p class="letter-meta">To ${to} &middot; From ${from}</p>
-                ${title}
-                <p class="letter-countdown">Opens ${fmtLongDate(l.openOn)}</p>
-                <p class="letter-countdown-small">${days.toLocaleString()} ${days === 1 ? 'day' : 'days'} from now</p>`;
-        }
-        container.appendChild(card);
-    });
-}
-
-function setupLetterForm() {
-    const form = document.getElementById('letter-form');
-    if (!form) return;
-    const date = form.elements.openOn;
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    date.min = todayKey(tomorrow);
-    date.max = '2075-12-31';
-    form.querySelectorAll('[data-years]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const d = new Date();
-            d.setFullYear(d.getFullYear() + Number(btn.dataset.years));
-            date.value = todayKey(d);
-        });
-    });
-    setupJSONForm('letter-form', '/api/letter', ['to', 'openOn', 'title', 'letter', 'from'],
-        'Thank you. Your letter has been received. Once it is checked, it will be sealed until the day you chose.');
-}
-
 // ---------- Events ----------
 // assets/events.json: [{"date": "2027-04-20", "title": "...", "time": "...",
 // "place": "...", "details": "...", "link": "https://..."}]. Past events hide
@@ -2060,14 +1979,12 @@ function buildFloatingBackground() {
         'Thank you. Your photo has been received and will join the gallery after a quick look.',
         ['name']);
     loadHeroPhoto();
-    loadLetters();
     loadMemories();
     setupMemoryForm();
     loadGallery();
     loadActs();
     setupJSONForm('act-form', '/api/act', ['act', 'place', 'name'],
         'Thank you for being lion-hearted. Your act will appear here after a quick look.');
-    setupLetterForm();
     loadEvents();
     setupKeepsake();
 })();

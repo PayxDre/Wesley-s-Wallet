@@ -793,102 +793,6 @@ a:hover {
     font-size: 1.15rem;
 }
 
-/* ---------- Letters for Later ---------- */
-.letters-list {
-    display: grid;
-    gap: 18px;
-    margin-top: 36px;
-}
-
-.letter-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 32px;
-    box-shadow: var(--shadow);
-    position: relative;
-}
-
-.letter-card.locked {
-    background: var(--bg-soft);
-    text-align: center;
-    border-style: dashed;
-    border-color: var(--gold-soft);
-}
-
-.letter-meta {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--ink-soft);
-    margin: 0 0 8px;
-}
-
-.letter-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-style: italic;
-    font-size: 1.7rem;
-    color: var(--ink);
-    margin: 0 0 16px;
-    font-weight: 500;
-}
-
-.letter-seal {
-    font-size: 2.6rem;
-    color: var(--gold);
-    line-height: 1;
-    margin-bottom: 14px;
-}
-
-.letter-countdown {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-style: italic;
-    color: var(--gold);
-    font-size: 1.05rem;
-    margin: 0;
-}
-
-.letter-countdown-small {
-    color: var(--ink-soft);
-    font-size: 0.9rem;
-    margin: 4px 0 0;
-}
-
-.letter-body {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.18rem;
-    line-height: 1.75;
-    color: var(--ink);
-    white-space: pre-line;
-    margin: 0;
-}
-
-.letter-signature {
-    font-style: italic;
-    color: var(--ink-soft);
-    margin: 18px 0 0;
-    text-align: right;
-    font-family: 'Cormorant Garamond', Georgia, serif;
-}
-
-.letters-empty {
-    text-align: center;
-    color: var(--ink-soft);
-    font-style: italic;
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.05rem;
-    padding: 40px 0;
-    margin: 0;
-}
-
-.letters-empty code {
-    font-family: 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 0.85em;
-    background: var(--bg-soft);
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
 /* ---------- Memory Wall ---------- */
 .memory-list {
     display: grid;
@@ -2338,8 +2242,7 @@ section,
 .footer-links span { color: var(--gold-soft); }
 
 /* ---------- Lion-hearted acts ---------- */
-.acts-count,
-.letters-count {
+.acts-count {
     text-align: center;
     margin: -8px 0 32px;
     font-family: 'Cormorant Garamond', Georgia, serif;
@@ -2411,38 +2314,10 @@ section,
 
 .acts-ideas a { color: var(--gold); }
 
-#act-form,
-#letter-form {
+#act-form {
     max-width: 560px;
     margin-left: auto;
     margin-right: auto;
-}
-
-/* ---------- Letters ---------- */
-.letter-quick {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: -8px;
-}
-
-.memory-form .letter-quick button {
-    padding: 7px 14px;
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    background: #fff;
-    border: 1px solid var(--gold-soft);
-    justify-self: auto;
-}
-
-.memory-form .letter-quick button:hover {
-    color: #fff;
-    background: var(--gold);
-}
-
-.letter-form .form-note {
-    line-height: 1.6;
 }
 
 /* ---------- Help for families ---------- */

@@ -11,7 +11,7 @@ for the years ahead.
 | --- | --- | --- |
 | The pages and photos | GitHub repository `PayxDre/Wesley-s-Wallet`, branch `claude/memorial-bitcoin-wallet-8wg6q` | Everything you see. Every change is saved as a commit, so nothing is ever truly lost. |
 | Hosting | Cloudflare Workers, project `wesleywallet` | Publishes the branch automatically after every commit. |
-| Private storage | Cloudflare KV namespace `SUBMISSIONS` | Holds new submissions until they're reviewed, and holds sealed time capsule letters. |
+| Private storage | Cloudflare KV namespace `SUBMISSIONS` | Holds new submissions until they're reviewed. |
 | The review bot | Andrew's AI bot | Checks submissions every hour and publishes the approved ones. |
 
 ### Where each kind of content goes
@@ -22,7 +22,6 @@ for the years ahead.
 | Photos and videos of Wesley | Photos | `assets/photos/` |
 | Wesley in the Wild moments | In the Wild | `assets/sunsets/` + `assets/sunsets.json` (with `lat`/`lon` for the map) |
 | Lion-hearted acts | Kindness | `assets/acts.json` |
-| Time capsule letters | Letters | **Never the repository.** Sealed in Cloudflare KV, and only shown from their opening day. |
 | Events (added by the family) | Home and Support | `assets/events.json` |
 
 Events use this format; past events hide themselves:
@@ -67,8 +66,7 @@ put a free sign-in in front of them. Visitors get a one-time code by email.
 
 1. Cloudflare dashboard, **Zero Trust**. Choose the Free plan.
 2. **Access**, **Applications**, **Add an application**, **Self-hosted**.
-3. Add the pages to protect, for example `/letters.html` and `/api/letters`
-   (protect both together, or the letters still show through the API).
+3. Add the pages to protect, for example `/photos.html`.
 4. Add a policy that allows the family's email addresses.
 
 Note: Access works best on a custom domain (step 1).
@@ -85,19 +83,7 @@ bitcoin explorer, even though the site no longer shows amounts. For more privacy
 - Keep the signed letter of intent (that the gift belongs to Vada, Riley, and
   Jimmy) with their important papers.
 
-### 5. Back up the sealed letters
-
-Sealed letters live only in Cloudflare KV. A few times a year, download a backup
-and keep it somewhere private (never in the GitHub repository, which is public):
-
-```
-GET https://<site>/api/letters/backup
-Authorization: Bearer <BOT_KEY>
-```
-
-The bot can do this and save the file to a private family drive.
-
-### 6. Make a keepsake book each year
+### 5. Make a keepsake book each year
 
 Open **Make a keepsake book** in the site's footer, choose the year, then
 **Print or save as PDF**. Saving one every April keeps a copy that doesn't

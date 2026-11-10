@@ -1,32 +1,24 @@
 // Wesley's Website: submissions API.
 //
-// Visitors submit memories, photos, lion-hearted acts, and time capsule
-// letters from forms on the site. Each submission is stored privately in
-// Cloudflare KV as "pending". Nothing is public until the family's review bot
-// approves it and publishes it to the repository (assets/memories.json,
-// assets/sunsets/, assets/photos/, assets/acts.json). Letters are the
-// exception: an approved letter is sealed here in KV, never in the
-// repository, and its words are only served from its opening day on.
+// Visitors submit memories, photos, and lion-hearted acts from forms on the
+// site. Each submission is stored privately in Cloudflare KV as "pending".
+// Nothing is public until the family's review bot approves it and publishes
+// it to the repository (assets/memories.json, assets/sunsets/,
+// assets/photos/, assets/acts.json).
 //
 // Public endpoints (used by the site's forms):
 //   POST /api/memory          JSON {name, memory, website}
 //   POST /api/sunset          multipart {photo, name?, place?, website}
 //   POST /api/photo           multipart {photo (image or video), name?, website}
 //   POST /api/act             JSON {name?, act, place?, website}   (a lion-hearted act)
-//   POST /api/letter          JSON {from, to, openOn, title?, letter, website}
-//   GET  /api/letters         sealed time capsule letters: who, for whom, and
-//                             when they open; the text only once opened
 //
 // Review endpoints (require "Authorization: Bearer <BOT_KEY>"):
 //   GET    /api/pending              list pending submissions, oldest first
 //   GET    /api/pending/:id/photo    download a pending sunset photo
 //   DELETE /api/pending/:id          remove a submission after review
-//   POST   /api/letters/:id/seal     approve a pending letter: it moves into the
-//                                    sealed store (never to GitHub) and the
-//                                    pending copy is removed
-//   DELETE /api/letters/:id          remove a sealed letter
-//   GET    /api/letters/backup       every sealed letter in full, for a private
-//                                    backup (never commit it to the repository)
+//   GET    /api/letters/backup       any letters sealed while the (since removed)
+//                                    Letters page was live, for a private backup
+//   DELETE /api/letters/:id          remove one of those letters
 //
 // Every other request is served from the static site files.
 
@@ -38,9 +30,7 @@ const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 24 * 1024 * 1024;
 const SUBMISSIONS_PER_IP_PER_HOUR = 10;
 const MAX_ACT = 600;
-const MAX_LETTER = 8000;
-const MAX_TITLE = 120;
-const LETTER_RECIPIENTS = ['Vada', 'Riley', 'Jimmy', 'Vada, Riley, and Jimmy'];
+
 
 export default {
     async fetch(request, env) {
@@ -65,8 +55,6 @@ async function handleApi(request, env, url) {
     if (path === '/api/sunset' && method === 'POST') return submitMedia(request, env, 'sunset');
     if (path === '/api/photo' && method === 'POST') return submitMedia(request, env, 'photo');
     if (path === '/api/act' && method === 'POST') return submitAct(request, env);
-    if (path === '/api/letter' && method === 'POST') return submitLetter(request, env);
-    if (path === '/api/letters' && method === 'GET') return listLetters(env);
     if (path === '/api/letters/backup' && method === 'GET') {
         if (!configuredKey(env)) {
             return json({ error: 'BOT_KEY is not set on this worker. Add it under Settings > Variables and Secrets as type Secret.' }, 503);
@@ -75,13 +63,13 @@ async function handleApi(request, env, url) {
         return backupLetters(env);
     }
 
-    const letterMatch = path.match(/^\/api\/letters\/([\w-]+)(\/seal)?$/);
-    if (letterMatch && ((letterMatch[2] && method === 'POST') || (!letterMatch[2] && method === 'DELETE'))) {
+    const letterMatch = path.match(/^\/api\/letters\/([\w-]+)$/);
+    if (letterMatch && method === 'DELETE') {
         if (!configuredKey(env)) {
             return json({ error: 'BOT_KEY is not set on this worker. Add it under Settings > Variables and Secrets as type Secret.' }, 503);
         }
         if (!(await isAuthorized(request, env))) return json({ error: 'Unauthorized: the key does not match.' }, 401);
-        return letterMatch[2] ? sealLetter(env, letterMatch[1]) : deleteLetter(env, letterMatch[1]);
+        return deleteLetter(env, letterMatch[1]);
     }
 
     if (path === '/api/pending' || path.startsWith('/api/pending/')) {
@@ -157,62 +145,6 @@ async function submitAct(request, env) {
     return json({ ok: true });
 }
 
-function todayISO() {
-    // The family is on US Eastern time; letters open on that calendar day.
-    return new Date(Date.now() - 5 * 3600 * 1000).toISOString().slice(0, 10);
-}
-
-async function submitLetter(request, env) {
-    const body = await readJSON(request);
-    if (!body) return json({ error: 'Invalid request.' }, 400);
-    if (clean(body.website)) return json({ ok: true });
-    const from = clean(body.from).slice(0, MAX_NAME);
-    const to = clean(body.to);
-    const openOn = clean(body.openOn);
-    const title = clean(body.title).slice(0, MAX_TITLE);
-    const letter = clean(body.letter);
-    if (!from || !letter) return json({ error: 'Please include your name and your letter.' }, 400);
-    if (!LETTER_RECIPIENTS.includes(to)) return json({ error: 'Please choose who the letter is for.' }, 400);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(openOn) || openOn <= todayISO() || openOn > '2075-12-31') {
-        return json({ error: 'Please choose an opening date in the future.' }, 400);
-    }
-    if (letter.length > MAX_LETTER) return json({ error: 'That letter is too long.' }, 400);
-    if (!(await withinRateLimit(request, env))) {
-        return json({ error: 'Too many submissions. Please try again later.' }, 429);
-    }
-    const id = newId();
-    await env.SUBMISSIONS.put(`sub:${id}`, JSON.stringify({
-        id, type: 'letter', from, to, openOn, title, letter, received: new Date().toISOString(),
-    }));
-    return json({ ok: true });
-}
-
-// Sealed letters live only here, in private storage. The page learns who
-// wrote each one, for whom, and when it opens; the words themselves are
-// sent only on or after the opening day.
-async function listLetters(env) {
-    const today = todayISO();
-    const letters = [];
-    let cursor;
-    do {
-        const page = await env.SUBMISSIONS.list({ prefix: 'letter:', cursor });
-        for (const key of page.keys) {
-            const v = await env.SUBMISSIONS.get(key.name, 'json');
-            if (!v) continue;
-            const open = v.openOn <= today;
-            letters.push({
-                id: v.id, from: v.from, to: v.to, openOn: v.openOn, title: v.title || '',
-                open, letter: open ? v.letter : undefined,
-            });
-        }
-        cursor = page.list_complete ? undefined : page.cursor;
-    } while (cursor);
-    letters.sort((a, b) => a.openOn.localeCompare(b.openOn));
-    return new Response(JSON.stringify({ letters }), {
-        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
-    });
-}
-
 async function backupLetters(env) {
     const letters = [];
     let cursor;
@@ -226,14 +158,6 @@ async function backupLetters(env) {
     } while (cursor);
     letters.sort((a, b) => a.openOn.localeCompare(b.openOn));
     return json({ exported: new Date().toISOString(), letters });
-}
-
-async function sealLetter(env, id) {
-    const pending = await env.SUBMISSIONS.get(`sub:${id}`, 'json');
-    if (!pending || pending.type !== 'letter') return json({ error: 'No pending letter with that id.' }, 404);
-    await env.SUBMISSIONS.put(`letter:${id}`, JSON.stringify({ ...pending, sealed: new Date().toISOString() }));
-    await env.SUBMISSIONS.delete(`sub:${id}`);
-    return json({ ok: true, openOn: pending.openOn });
 }
 
 async function deleteLetter(env, id) {
