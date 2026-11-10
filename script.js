@@ -67,7 +67,7 @@ async function loadHeroPhoto() {
 // the words. Pages opt in with <body data-companion>, or name a photo from
 // assets/photos to use instead of the main one: data-companion="IMG_0011.jpeg".
 // Where his face sits in each photo, so the soft fade stays centered on him.
-const COMPANION_FOCUS = { 'IMG_0011.jpeg': '53% 38%' };
+const COMPANION_FOCUS = { 'IMG_0011.jpeg': '53% 38%', 'DSC07302.JPG': '48% 30%' };
 
 async function addCompanionPhoto() {
     if (!document.body.hasAttribute('data-companion')) return;
