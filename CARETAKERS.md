@@ -35,19 +35,18 @@ Events use this format; past events hide themselves:
 
 ## Things only a person can do
 
-### 1. Give the site its own web address
+### 1. Keep the web address renewed
 
-The site lives at `wesleywallet.mcgreevyandrew.workers.dev` today. Its own
-address (for example `wesleyswebsite.com`) is easier to share and won't break
-if hosting ever changes.
+The site's address is **wesleys-website.com** (it also still answers at
+`wesleywallet.mcgreevyandrew.workers.dev`). If the domain ever lapses, every
+shared link breaks, so:
 
-1. Buy the name. Cloudflare sells domains at cost: Cloudflare dashboard,
-   **Domain Registration**, **Register Domains**. Turn on auto-renew, and
-   consider paying for several years at once.
-2. In **Workers & Pages**, open `wesleywallet`, then **Settings**, **Domains &
-   Routes**, **Add**, **Custom domain**, and enter the name.
-3. Tell whoever maintains the code, so the share links and link previews can
-   point to the new address.
+- Turn on auto-renew where the domain was bought, and consider paying for
+  several years at once.
+- Keep a card on file that won't quietly expire, and a family email on the
+  renewal notices.
+- The domain is connected under **Workers & Pages**, `wesleywallet`,
+  **Settings**, **Domains & Routes**.
 
 ### 2. Make sure the family owns it, not one person
 

@@ -10,7 +10,7 @@ DTSTART;VALUE=DATE:20260420
 DTEND;VALUE=DATE:20260421
 RRULE:FREQ=YEARLY
 SUMMARY:Wesley's birthday
-DESCRIPTION:Wesley Robert Prisuta was born April 20\, 2025. Light a candle for him: https://wesleywallet.mcgreevyandrew.workers.dev/#candle
+DESCRIPTION:Wesley Robert Prisuta was born April 20\, 2025. Light a candle for him: https://wesleys-website.com/#candle
 TRANSP:TRANSPARENT
 END:VEVENT
 BEGIN:VEVENT
@@ -20,7 +20,7 @@ DTSTART;VALUE=DATE:20270425
 DTEND;VALUE=DATE:20270426
 RRULE:FREQ=YEARLY
 SUMMARY:Remembering Wesley
-DESCRIPTION:Today we remember Wesley Robert Prisuta. Light a candle for him: https://wesleywallet.mcgreevyandrew.workers.dev/#candle
+DESCRIPTION:Today we remember Wesley Robert Prisuta. Light a candle for him: https://wesleys-website.com/#candle
 TRANSP:TRANSPARENT
 END:VEVENT
 END:VCALENDAR
