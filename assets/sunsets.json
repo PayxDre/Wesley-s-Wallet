@@ -3,18 +3,24 @@
     "file": "2026-09-30-punta-cana.jpg",
     "date": "2026-09-30",
     "place": "Punta Cana",
-    "name": "Andrew"
+    "name": "Andrew",
+    "lat": 18.5601,
+    "lon": -68.3725
   },
   {
     "file": "2026-11-07-rehoboth-beach.jpg",
     "date": "2026-11-07",
     "place": "Rehoboth Beach",
-    "name": "Andrew"
+    "name": "Andrew",
+    "lat": 38.7209,
+    "lon": -75.076
   },
   {
     "file": "2026-11-09-rehoboth-beach.jpg",
     "date": "2026-11-09",
     "place": "Rehoboth Beach, DE",
-    "name": "Erica McGreevy"
+    "name": "Erica McGreevy",
+    "lat": 38.7209,
+    "lon": -75.076
   }
 ]

@@ -1,356 +1,32 @@
-// Wesley's Wallet: live data + chart
-// All data is fetched from public, no-key APIs:
-//   - CoinGecko: BTC price + history
-//   - Blockstream:  wallet balance (when a real address is set)
+// Wesley's Website
 
 const CONFIG = {
-    // The family gift wallet. Set to null to show a "being set up" state
-    // instead of live numbers.
+    // The family gift address (bitcoin) for Vada, Riley, and Jimmy.
     walletAddress: 'bc1qhrvv3xjwlluq7fzkp6evhg00j5e9mqhunlshuf',
     // Optional caption shown under the framed Featured photo.
     featuredCaption: '',
     birth: new Date('2025-04-20T00:00:00'),
     passing: new Date('2026-04-25T00:00:00'),
-    // Approximate Bitcoin block height at passing (April 25, 2026).
-    // Anchored to the inscription in block 947,318 on April 30, 2026
-    // minus ~5 days × 144 blocks/day.
-    blockAtPassing: 946600,
 };
 
 const $ = (sel) => document.querySelector(sel);
 
-const fmtUSD = (n) =>
-    new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        maximumFractionDigits: n >= 1000 ? 0 : 2,
-    }).format(n);
-
-const fmtBTC = (sats) => {
-    const btc = sats / 1e8;
-    return `${btc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC`;
-};
-
-async function fetchBTCPrice() {
-    const url =
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true';
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('price fetch failed');
-    const data = await res.json();
-    return {
-        usd: data.bitcoin.usd,
-        change24h: data.bitcoin.usd_24h_change,
-    };
-}
-
-// Balance plus the number of gifts (incoming payments, including ones
-// still waiting to confirm), from one Blockstream lookup.
-async function fetchWalletBalance(address) {
-    const res = await fetch(`https://blockstream.info/api/address/${address}`);
-    if (!res.ok) throw new Error('balance fetch failed');
-    const data = await res.json();
-    const sats =
-        (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) +
-        (data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum);
-    walletGiftCount = data.chain_stats.funded_txo_count + data.mempool_stats.funded_txo_count;
-    return sats;
-}
-
-let walletGiftCount = null;
-
-async function fetchCurrentBlockHeight() {
-    const res = await fetch('https://blockstream.info/api/blocks/tip/height');
-    if (!res.ok) throw new Error('block height fetch failed');
-    return parseInt(await res.text(), 10);
-}
-
-// The BTC price on the day Wesley passed never changes, so it's looked up
-// once and remembered. mempool.space serves historical prices with no
-// age limit; CoinGecko's free tier only reaches back 365 days, so it is
-// only a fallback.
-async function fetchBTCPriceAtPassing() {
-    const cacheKey = 'btc-price-at-passing-2026-04-25';
+// The gift page shows only how many gifts have arrived, never amounts or
+// value. (Incoming payments, including ones still confirming.)
+async function loadGiftCount() {
+    const el = document.getElementById('gift-count');
+    if (!el || !CONFIG.walletAddress) return;
     try {
-        const v = parseFloat(localStorage.getItem(cacheKey));
-        if (v > 0) return v;
-    } catch {}
-
-    const ts = Math.floor(CONFIG.passing.getTime() / 1000);
-    const sources = [
-        async () => {
-            const res = await fetch(`https://mempool.space/api/v1/historical-price?currency=USD&timestamp=${ts}`);
-            if (!res.ok) throw new Error('mempool historical price failed');
-            const data = await res.json();
-            return data?.prices?.[0]?.USD;
-        },
-        async () => {
-            const res = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/history?date=25-04-2026&localization=false');
-            if (!res.ok) throw new Error('coingecko historical price failed');
-            const data = await res.json();
-            return data?.market_data?.current_price?.usd;
-        },
-    ];
-
-    for (const source of sources) {
-        try {
-            const price = await source();
-            if (price > 0) {
-                try { localStorage.setItem(cacheKey, String(price)); } catch {}
-                return price;
-            }
-        } catch (e) {
-            console.warn(e.message);
+        const res = await fetch(`https://blockstream.info/api/address/${CONFIG.walletAddress}`);
+        if (!res.ok) return;
+        const d = await res.json();
+        const n = d.chain_stats.funded_txo_count + d.mempool_stats.funded_txo_count;
+        if (n > 0) {
+            el.textContent = `${n.toLocaleString()} ${n === 1 ? 'gift' : 'gifts'} received so far, with love`;
+            el.hidden = false;
         }
-    }
-    throw new Error('no historical price available');
-}
-
-async function loadGrowthMetrics(currentSats, currentPrice) {
-    const $val = (id) => document.getElementById(id);
-    const setVal = (id, txt, cls) => {
-        const el = $val(id);
-        if (!el) return;
-        el.textContent = txt;
-        if (cls !== undefined) {
-            el.classList.remove('positive', 'negative');
-            if (cls) el.classList.add(cls);
-        }
-    };
-
-    // Days since passing
-    const days = Math.max(0, Math.floor((Date.now() - CONFIG.passing.getTime()) / 86400000));
-    setVal('growth-days', days.toLocaleString());
-
-    // Bitcoin blocks since passing
-    try {
-        const height = await fetchCurrentBlockHeight();
-        const blocks = Math.max(0, height - CONFIG.blockAtPassing);
-        setVal('growth-blocks', blocks.toLocaleString());
     } catch (e) {
-        setVal('growth-blocks', `~${Math.floor(days * 144).toLocaleString()}`);
-    }
-
-    // BTC price change since he passed
-    try {
-        if (currentPrice == null) throw new Error('current price unavailable');
-        const passPrice = await fetchBTCPriceAtPassing();
-        const priceDelta = currentPrice - passPrice;
-        const pricePct = (priceDelta / passPrice) * 100;
-        const sign = priceDelta >= 0 ? '+' : '';
-        setVal('growth-price', `${sign}${pricePct.toFixed(1)}%`, priceDelta >= 0 ? 'positive' : 'negative');
-        setVal('growth-price-sub', `${sign}${fmtUSD(priceDelta)} per BTC`);
-    } catch (e) {
-        console.warn('growth price fetch failed:', e);
-        setVal('growth-price', '—', '');
-    }
-
-    // Gifts received: a count, independent of price
-    if (currentSats === null || (CONFIG.walletAddress && walletGiftCount === null)) {
-        setVal('growth-value', '—', '');
-        setVal('growth-value-sub', 'Unavailable right now');
-    } else if (!CONFIG.walletAddress) {
-        setVal('growth-value', '—', '');
-        setVal('growth-value-sub', 'Wallet being set up');
-    } else {
-        setVal('growth-value', walletGiftCount.toLocaleString(), '');
-        setVal('growth-value-sub', walletGiftCount === 0 ? 'Be the first to add to it'
-            : walletGiftCount === 1 ? 'gift so far' : 'gifts so far');
-    }
-}
-
-async function fetchPriceHistory(days) {
-    const url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('history fetch failed');
-    const data = await res.json();
-    return data.prices; // [[timestamp, price], ...]
-}
-
-let chart;
-
-function renderChart(prices) {
-    const ctx = document.getElementById('price-chart').getContext('2d');
-    const labels = prices.map(([t]) => new Date(t));
-    const values = prices.map(([, p]) => p);
-
-    const gradient = ctx.createLinearGradient(0, 0, 0, 280);
-    gradient.addColorStop(0, 'rgba(184, 146, 74, 0.28)');
-    gradient.addColorStop(1, 'rgba(184, 146, 74, 0)');
-
-    if (chart) chart.destroy();
-
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [
-                {
-                    data: values,
-                    borderColor: '#b8924a',
-                    backgroundColor: gradient,
-                    borderWidth: 2,
-                    fill: true,
-                    pointRadius: 0,
-                    tension: 0.25,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#2d2a26',
-                    padding: 10,
-                    titleFont: { family: 'Inter', size: 12, weight: '500' },
-                    bodyFont: { family: 'Inter', size: 13 },
-                    callbacks: {
-                        title: (items) =>
-                            new Date(items[0].parsed.x).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                            }),
-                        label: (item) => fmtUSD(item.parsed.y),
-                    },
-                },
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: { unit: 'month' },
-                    grid: { display: false },
-                    ticks: { color: '#6b6359', font: { family: 'Inter', size: 11 } },
-                },
-                y: {
-                    grid: { color: '#e7dfd2' },
-                    ticks: {
-                        color: '#6b6359',
-                        font: { family: 'Inter', size: 11 },
-                        callback: (v) => fmtUSD(v),
-                    },
-                },
-            },
-        },
-    });
-}
-
-let balancePromise = null;
-function getBalanceSats() {
-    if (!CONFIG.walletAddress) return Promise.resolve(0);
-    if (!balancePromise) {
-        // A failed lookup returns null (not 0) so the page says "unavailable"
-        // instead of showing an empty wallet.
-        balancePromise = fetchWalletBalance(CONFIG.walletAddress).catch((e) => {
-            console.warn('balance fetch failed:', e);
-            balancePromise = null;
-            return null;
-        });
-    }
-    return balancePromise;
-}
-
-async function loadChart(days) {
-    const note = $('#chart-note');
-    note.textContent = 'Loading wallet history…';
-    try {
-        // Check the balance first: an unfunded wallet needs no price history.
-        const sats = await getBalanceSats();
-        if (sats === null) throw new Error('balance unavailable');
-        const btc = sats / 1e8;
-        if (btc <= 0) {
-            note.textContent = CONFIG.walletAddress
-                ? 'The chart will appear here once the wallet is funded.'
-                : 'The wallet chart will appear here once the wallet is set up and funded.';
-            if (chart) { chart.destroy(); chart = null; }
-            return;
-        }
-        const prices = await fetchPriceHistory(days);
-        const walletValues = prices.map(([t, p]) => [t, btc * p]);
-        renderChart(walletValues);
-        note.textContent = '';
-    } catch (e) {
-        note.textContent = 'Could not load wallet history right now.';
-        console.error(e);
-    }
-}
-
-async function loadWallet() {
-    const addr = CONFIG.walletAddress;
-    if (addr) {
-        // Show the address right away; it doesn't depend on any live data.
-        const addrEl = $('#wallet-address');
-        addrEl.innerHTML = '';
-        const a = document.createElement('a');
-        a.href = `https://mempool.space/address/${addr}`;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.textContent = addr;
-        addrEl.appendChild(a);
-    } else {
-        $('#btc-balance').textContent = 'Being set up';
-        $('#usd-value').textContent = 'Balance will appear once funded';
-        $('#wallet-address').textContent = 'Coming soon';
-    }
-
-    // Price and balance come from different services; one failing must
-    // not hide the other.
-    const [priceRes, satsRes] = await Promise.allSettled([
-        fetchBTCPrice(),
-        addr ? getBalanceSats() : Promise.resolve(0),
-    ]);
-    const price = priceRes.status === 'fulfilled' ? priceRes.value : null;
-    const sats = satsRes.status === 'fulfilled' ? satsRes.value : null;
-
-    if (price) {
-        $('#btc-price').textContent = fmtUSD(price.usd);
-        const change = price.change24h;
-        const sign = change >= 0 ? '+' : '';
-        $('#btc-change').textContent = `${sign}${change.toFixed(2)}% today`;
-        $('#btc-change').style.color = change >= 0 ? '#5e7a52' : '#a85a4a';
-    } else {
-        $('#btc-price').textContent = 'Unavailable';
-        $('#btc-change').textContent = 'Live price could not be loaded';
-    }
-
-    if (addr) {
-        if (sats === null) {
-            $('#btc-balance').textContent = 'Unavailable';
-            $('#usd-value').textContent = 'Balance could not be loaded right now';
-        } else {
-            $('#btc-balance').textContent = fmtBTC(sats);
-            $('#usd-value').textContent = price ? fmtUSD((sats / 1e8) * price.usd) : 'USD value unavailable';
-        }
-    }
-
-    loadGrowthMetrics(addr ? sats : 0, price ? price.usd : null);
-}
-
-function setupRangeButtons() {
-    document.querySelectorAll('.range-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.range-btn').forEach((b) => {
-                b.classList.remove('active');
-                b.setAttribute('aria-selected', 'false');
-            });
-            btn.classList.add('active');
-            btn.setAttribute('aria-selected', 'true');
-            loadChart(btn.dataset.days);
-        });
-    });
-}
-
-function setAgeLine() {
-    const ageEl = $('#age-line');
-    if (!ageEl) return;
-    const ms = CONFIG.passing - CONFIG.birth;
-    const days = Math.round(ms / (1000 * 60 * 60 * 24));
-    const years = Math.floor(days / 365);
-    const remaining = days - years * 365;
-    if (years === 1 && remaining > 0) {
-        ageEl.textContent = `One year and ${remaining} days of light.`;
+        console.warn('gift count unavailable', e);
     }
 }
 
@@ -768,47 +444,6 @@ function writePhotoCache(names) {
     } catch {}
 }
 
-function setFooterTime() {
-    $('#footer-time').textContent =
-        'Live prices as of ' +
-        new Date().toLocaleString('en-US', {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-        });
-}
-
-// Chart.js needs a time scale adapter. We load date-fns adapter dynamically
-// only when needed so the chart can render time-series labels.
-function loadChartAdapter() {
-    return new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-    });
-}
-
-// The balloon lion stays tucked below the viewport until the reader
-// reaches the wallet section, then floats up the screen once.
-function setupIntroFly() {
-    const el = document.getElementById('intro-fly');
-    const wallet = document.getElementById('wallet');
-    if (!el || !wallet || !('IntersectionObserver' in window)) return;
-    const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) return;
-                observer.disconnect();
-                el.classList.add('fly');
-                setTimeout(() => el.remove(), 9500);
-            });
-        },
-        { threshold: 0.25 }
-    );
-    observer.observe(wallet);
-}
-
 function escapeHTML(s) {
     if (s == null) return '';
     return String(s)
@@ -824,10 +459,10 @@ const CANDLE_COUNTER_BASE = 'https://abacus.jasoncameron.dev';
 const CANDLE_COUNTER_NS = 'wesleyswallet';
 const CANDLE_COUNTER_KEY = 'candles';
 
-async function fetchCandleCount() {
+async function fetchCandleCount(key = CANDLE_COUNTER_KEY) {
     try {
         const res = await fetch(
-            `${CANDLE_COUNTER_BASE}/get/${CANDLE_COUNTER_NS}/${CANDLE_COUNTER_KEY}`
+            `${CANDLE_COUNTER_BASE}/get/${CANDLE_COUNTER_NS}/${key}`
         );
         if (!res.ok) return null;
         const data = await res.json();
@@ -838,10 +473,10 @@ async function fetchCandleCount() {
     }
 }
 
-async function incrementCandleCount() {
+async function incrementCandleCount(key = CANDLE_COUNTER_KEY) {
     try {
         const res = await fetch(
-            `${CANDLE_COUNTER_BASE}/hit/${CANDLE_COUNTER_NS}/${CANDLE_COUNTER_KEY}`
+            `${CANDLE_COUNTER_BASE}/hit/${CANDLE_COUNTER_NS}/${key}`
         );
         if (!res.ok) return null;
         const data = await res.json();
@@ -863,6 +498,44 @@ function displayCandleCount(n) {
     wrap.hidden = false;
 }
 
+// ---------- His days: April 20 (birthday) and April 25 (remembrance) ----------
+function ordinal(n) {
+    const v = n % 100;
+    const suffix = (v >= 11 && v <= 13) ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+    return `${n}${suffix}`;
+}
+
+// Returns 'birthday', 'remembrance', or null for today (?day= overrides,
+// for previewing).
+function wesleyDay(now = new Date()) {
+    const forced = new URLSearchParams(location.search).get('day');
+    if (forced === 'birthday' || forced === 'remembrance') return forced;
+    if (now.getMonth() === 3 && now.getDate() === 20) return 'birthday';
+    if (now.getMonth() === 3 && now.getDate() === 25) return 'remembrance';
+    return null;
+}
+
+function todayKey(now = new Date()) {
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function setupWesleyDay() {
+    const day = wesleyDay();
+    if (!day) return;
+    document.body.classList.add(`is-${day}`);
+    const banner = document.getElementById('day-banner');
+    if (!banner) return;
+    const year = new Date().getFullYear();
+    if (day === 'birthday') {
+        const n = Math.max(1, year - CONFIG.birth.getFullYear());
+        banner.innerHTML = `<strong>Happy ${ordinal(n)} birthday, Wesley.</strong> <span>Light a candle for him today &darr;</span>`;
+    } else {
+        const n = Math.max(1, year - CONFIG.passing.getFullYear());
+        banner.innerHTML = `<strong>Today we remember Wesley, ${n === 1 ? 'one year' : `${n} years`} on.</strong> <span>Light a candle for him &darr;</span>`;
+    }
+    banner.hidden = false;
+}
+
 function setupCandle() {
     const btn = document.getElementById('candle-btn');
     const status = document.getElementById('candle-status');
@@ -871,7 +544,22 @@ function setupCandle() {
     // Load global count without incrementing.
     fetchCandleCount().then(displayCandleCount);
 
-    if (localStorage.getItem(CANDLE_KEY)) {
+    // On his birthday and remembrance day everyone can light a fresh candle,
+    // and the page shows how many were lit that day.
+    const day = wesleyDay();
+    const dayKey = day ? `candles-${todayKey()}` : null;
+    const litKey = day ? `${CANDLE_KEY}-${todayKey()}` : CANDLE_KEY;
+    const todayEl = document.getElementById('candle-today');
+    const showToday = (n) => {
+        if (!todayEl || n == null) return;
+        todayEl.textContent = `${n.toLocaleString()} ${n === 1 ? 'candle' : 'candles'} lit for him today`;
+        todayEl.hidden = false;
+    };
+    if (dayKey) fetchCandleCount(dayKey).then(showToday);
+
+    let alreadyLit = false;
+    try { alreadyLit = !!localStorage.getItem(litKey); } catch { /* private mode */ }
+    if (alreadyLit) {
         btn.classList.add('lit');
         status.classList.add('is-lit');
         status.textContent = 'Your candle is lit for Wesley.';
@@ -882,70 +570,13 @@ function setupCandle() {
         btn.classList.add('lit');
         status.classList.add('is-lit');
         status.textContent = 'Your candle is lit for Wesley.';
-        try { localStorage.setItem(CANDLE_KEY, new Date().toISOString()); } catch {}
-        const newCount = await incrementCandleCount();
+        try { localStorage.setItem(litKey, new Date().toISOString()); } catch {}
+        const [newCount, dayCount] = await Promise.all([
+            incrementCandleCount(),
+            dayKey ? incrementCandleCount(dayKey) : null,
+        ]);
         if (newCount != null) displayCandleCount(newCount);
-    });
-}
-
-async function loadLetters() {
-    const container = document.getElementById('letters-list');
-    const navLink = document.querySelector('[data-nav="letters"]');
-    if (!container && !navLink) return;
-
-    let letters = [];
-    try {
-        const res = await fetch('assets/letters.json', { cache: 'no-cache' });
-        if (res.ok) letters = await res.json();
-    } catch (e) {
-        console.warn('letters fetch failed', e);
-    }
-
-    // Section stays hidden until at least one letter exists, so visitors
-    // never see an empty or technical placeholder.
-    if (!Array.isArray(letters) || letters.length === 0) return;
-    if (navLink) navLink.hidden = false;
-    if (!container) return;
-    const section = document.getElementById('letters');
-    if (section) section.hidden = false;
-
-    const now = Date.now();
-    letters.sort((a, b) => new Date(a.unlocksOn) - new Date(b.unlocksOn));
-
-    container.innerHTML = '';
-    letters.forEach((letter) => {
-        const unlocksAt = new Date(letter.unlocksOn).getTime();
-        const isUnlocked = !isNaN(unlocksAt) && now >= unlocksAt;
-        const card = document.createElement('article');
-        card.className = 'letter-card ' + (isUnlocked ? 'open' : 'locked');
-
-        const to = escapeHTML(letter.to || '');
-        const from = escapeHTML(letter.from || '');
-        const title = escapeHTML(letter.title || '');
-
-        if (isUnlocked) {
-            const body = escapeHTML(letter.body || '').replace(/\n/g, '<br />');
-            card.innerHTML = `
-                <p class="letter-meta">To ${to} · From ${from}</p>
-                <h3 class="letter-title">${title}</h3>
-                <p class="letter-body">${body}</p>
-                <p class="letter-signature">— ${from}</p>
-            `;
-        } else {
-            const daysToGo = Math.ceil((unlocksAt - now) / 86400000);
-            const dateStr = new Date(unlocksAt).toLocaleDateString('en-US', {
-                year: 'numeric', month: 'long', day: 'numeric',
-            });
-            card.innerHTML = `
-                <div class="letter-seal" aria-hidden="true">✉</div>
-                <p class="letter-meta">To ${to} · From ${from}</p>
-                <h3 class="letter-title">${title}</h3>
-                <p class="letter-countdown">Opens ${dateStr}</p>
-                <p class="letter-countdown-small">${daysToGo.toLocaleString()} days from now</p>
-            `;
-        }
-
-        container.appendChild(card);
+        showToday(dayCount);
     });
 }
 
@@ -1043,6 +674,296 @@ async function submitToSite(form, url, options, successText) {
             }, 8000);
         }
     }
+}
+
+// ---------- Small shared helpers ----------
+async function fetchJSONList(url) {
+    try {
+        const res = await fetch(url, { cache: 'no-cache' });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+    } catch {
+        return [];
+    }
+}
+
+function fmtLongDate(iso) {
+    const d = parseLocalDate(iso);
+    return d ? d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+}
+
+// A JSON form that posts to the site's own API (see worker/index.js).
+function setupJSONForm(formId, url, fields, successText) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = { website: form.elements.website ? form.elements.website.value : '' };
+        fields.forEach((f) => { payload[f] = form.elements[f] ? form.elements[f].value : ''; });
+        await submitToSite(form, url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        }, successText);
+    });
+}
+
+// ---------- Lion-hearted acts ----------
+async function loadActs() {
+    const list = document.getElementById('acts-list');
+    if (!list) return;
+    const acts = await fetchJSONList('assets/acts.json');
+    if (!acts.length) return;
+    acts.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const count = document.getElementById('acts-count');
+    if (count) {
+        count.textContent = `${acts.length.toLocaleString()} lion-hearted ${acts.length === 1 ? 'act' : 'acts'} and counting`;
+        count.hidden = false;
+    }
+    const empty = document.getElementById('acts-empty');
+    if (empty) empty.hidden = true;
+    list.innerHTML = '';
+    acts.forEach((a) => {
+        const card = document.createElement('article');
+        card.className = 'act-card';
+        const meta = [a.name, a.place, fmtLongDate(a.date)].filter(Boolean).map(escapeHTML).join(' &middot; ');
+        card.innerHTML = `
+            <p class="act-body">${escapeHTML(a.act || '').replace(/\n/g, '<br />')}</p>
+            ${meta ? `<p class="act-meta">${meta}</p>` : ''}`;
+        list.appendChild(card);
+    });
+}
+
+// ---------- Letters for later ----------
+// Sealed letters are kept by the site's worker, which only sends a letter's
+// words on or after its opening day. assets/letters.json is still read for
+// any letters the family added by hand.
+async function loadLetters() {
+    const container = document.getElementById('letters-list');
+    if (!container) return;
+    let sealed = [];
+    try {
+        const res = await fetch('/api/letters');
+        if (res.ok) sealed = (await res.json()).letters || [];
+    } catch (e) {
+        console.warn('letters unavailable', e);
+    }
+    const today = todayKey();
+    const handAdded = (await fetchJSONList('assets/letters.json')).map((l) => {
+        const openOn = (l.unlocksOn || l.openOn || '').slice(0, 10);
+        const open = !!openOn && openOn <= today;
+        return { from: l.from, to: l.to, title: l.title, openOn, open, letter: open ? (l.body || l.letter) : undefined };
+    });
+    const letters = sealed.concat(handAdded).filter((l) => l.openOn);
+    if (!letters.length) return;
+    letters.sort((a, b) => a.openOn.localeCompare(b.openOn));
+
+    const waiting = letters.filter((l) => !l.open).length;
+    const opened = letters.length - waiting;
+    const count = document.getElementById('letters-count');
+    if (count) {
+        const parts = [];
+        if (waiting) parts.push(`${waiting} sealed ${waiting === 1 ? 'letter' : 'letters'} waiting`);
+        if (opened) parts.push(`${opened} opened`);
+        count.textContent = parts.join(', ');
+        count.hidden = false;
+    }
+
+    container.innerHTML = '';
+    const now = parseLocalDate(today);
+    letters.forEach((l) => {
+        const card = document.createElement('article');
+        card.className = `letter-card ${l.open ? 'open' : 'locked'}`;
+        const to = escapeHTML(l.to || '');
+        const from = escapeHTML(l.from || '');
+        const title = l.title ? `<h3 class="letter-title">${escapeHTML(l.title)}</h3>` : '';
+        if (l.open) {
+            card.innerHTML = `
+                <p class="letter-meta">To ${to} &middot; From ${from} &middot; Opened ${fmtLongDate(l.openOn)}</p>
+                ${title}
+                <p class="letter-body">${escapeHTML(l.letter || '').replace(/\n/g, '<br />')}</p>
+                <p class="letter-signature">${from}</p>`;
+        } else {
+            const days = Math.max(1, Math.round((parseLocalDate(l.openOn) - now) / 86400000));
+            card.innerHTML = `
+                <div class="letter-seal" aria-hidden="true">✉</div>
+                <p class="letter-meta">To ${to} &middot; From ${from}</p>
+                ${title}
+                <p class="letter-countdown">Opens ${fmtLongDate(l.openOn)}</p>
+                <p class="letter-countdown-small">${days.toLocaleString()} ${days === 1 ? 'day' : 'days'} from now</p>`;
+        }
+        container.appendChild(card);
+    });
+}
+
+function setupLetterForm() {
+    const form = document.getElementById('letter-form');
+    if (!form) return;
+    const date = form.elements.openOn;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    date.min = todayKey(tomorrow);
+    date.max = '2075-12-31';
+    form.querySelectorAll('[data-years]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const d = new Date();
+            d.setFullYear(d.getFullYear() + Number(btn.dataset.years));
+            date.value = todayKey(d);
+        });
+    });
+    setupJSONForm('letter-form', '/api/letter', ['to', 'openOn', 'title', 'letter', 'from'],
+        'Thank you. Your letter has been received. Once it is checked, it will be sealed until the day you chose.');
+}
+
+// ---------- Events ----------
+// assets/events.json: [{"date": "2027-04-20", "title": "...", "time": "...",
+// "place": "...", "details": "...", "link": "https://..."}]. Past events hide
+// themselves; the section stays hidden when nothing is coming up.
+async function loadEvents() {
+    const section = document.getElementById('events');
+    const list = document.getElementById('events-list');
+    if (!section || !list) return;
+    const today = todayKey();
+    const events = (await fetchJSONList('assets/events.json'))
+        .filter((e) => e.date && e.title && e.date >= today)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    if (!events.length) return;
+    list.innerHTML = '';
+    events.forEach((e) => {
+        const d = parseLocalDate(e.date);
+        const card = document.createElement('article');
+        card.className = 'event-card';
+        const link = /^https:\/\//.test(e.link || '') ? `<a class="event-link" href="${escapeHTML(e.link)}" target="_blank" rel="noopener">Details &rarr;</a>` : '';
+        card.innerHTML = `
+            <div class="event-date" aria-hidden="true">
+                <span>${d.toLocaleDateString('en-US', { month: 'short' })}</span>
+                <strong>${d.getDate()}</strong>
+            </div>
+            <div class="event-info">
+                <h4>${escapeHTML(e.title)}</h4>
+                <p class="event-meta">${[fmtLongDate(e.date), e.time, e.place].filter(Boolean).map(escapeHTML).join(' &middot; ')}</p>
+                ${e.details ? `<p>${escapeHTML(e.details)}</p>` : ''}
+                ${link}
+            </div>`;
+        list.appendChild(card);
+    });
+    section.hidden = false;
+}
+
+// ---------- Map of Wesley in the Wild ----------
+function loadLeaflet() {
+    if (window.L) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = 'assets/vendor/leaflet-1.9.4/leaflet.css';
+        document.head.appendChild(css);
+        const js = document.createElement('script');
+        js.src = 'assets/vendor/leaflet-1.9.4/leaflet.js';
+        js.onload = resolve;
+        js.onerror = reject;
+        document.head.appendChild(js);
+    });
+}
+
+function setupWildMap(items) {
+    const el = document.getElementById('sr-map');
+    if (!el) return () => {};
+    let map = null;
+    return async () => {
+        if (map) { map.invalidateSize(); return; }
+        const placed = items.filter((it) => Number.isFinite(Number(it.lat)) && Number.isFinite(Number(it.lon)));
+        const note = document.getElementById('sr-map-note');
+        try {
+            await loadLeaflet();
+        } catch {
+            if (note) note.textContent = 'The map could not load right now.';
+            return;
+        }
+        map = L.map(el, { scrollWheelZoom: false, worldCopyJump: true });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        }).addTo(map);
+        const points = [];
+        placed.forEach((it) => {
+            const ll = [Number(it.lat), Number(it.lon)];
+            points.push(ll);
+            const pop = document.createElement('div');
+            pop.className = 'sr-map-pop';
+            const img = document.createElement('img');
+            img.alt = it.place || 'A moment shared for Wesley';
+            setImageWithFallback(img, it.file, 320, null, SUNSET_PATH);
+            const cap = document.createElement('p');
+            cap.innerHTML = `<strong>${escapeHTML(it.place || 'Wesley in the wild')}</strong><br />${[it.name, fmtShortDate(it.date)].filter(Boolean).map(escapeHTML).join(' &middot; ')}`;
+            pop.append(img, cap);
+            L.circleMarker(ll, { radius: 9, color: '#fffaf2', weight: 2, fillColor: '#d9932f', fillOpacity: 0.95 })
+                .addTo(map).bindPopup(pop, { maxWidth: 240 });
+        });
+        if (points.length > 1) map.fitBounds(points, { padding: [40, 40], maxZoom: 9 });
+        else if (points.length === 1) map.setView(points[0], 8);
+        else map.setView([30, -40], 2);
+        if (note) {
+            const n = placed.length;
+            note.textContent = n
+                ? `${n} ${n === 1 ? 'moment' : 'moments'} on the map. Tap a dot to see it.`
+                : 'Places will appear here as moments are shared.';
+        }
+    };
+}
+
+// ---------- Keepsake book ----------
+async function setupKeepsake() {
+    const book = document.getElementById('keepsake-book');
+    const yearSel = document.getElementById('keepsake-year');
+    if (!book || !yearSel) return;
+    document.getElementById('keepsake-print').addEventListener('click', () => window.print());
+
+    const [memories, acts, wild, names] = await Promise.all([
+        fetchJSONList('assets/memories.json'),
+        fetchJSONList('assets/acts.json'),
+        loadSunriseItems().catch(() => []),
+        getPhotoNames().catch(() => []),
+    ]);
+    const photos = names.filter((n) => IMAGE_RX.test(n) && !POSTER_RX.test(n));
+
+    const thisYear = new Date().getFullYear();
+    const years = [];
+    for (let y = thisYear; y >= 2025; y--) years.push(y);
+    yearSel.innerHTML = `<option value="all">Everything so far</option>${years.map((y) => `<option value="${y}">${y}</option>`).join('')}`;
+
+    const inYear = (iso, y) => y === 'all' || (iso || '').slice(0, 4) === String(y);
+    const render = () => {
+        const y = yearSel.value;
+        const mem = memories.filter((m) => inYear(m.date, y));
+        const act = acts.filter((a) => inYear(a.date, y));
+        const wl = wild.filter((w) => inYear(w.date, y));
+        const label = y === 'all' ? 'Everything shared so far' : `The year ${y}`;
+        const section = (title, inner) => inner ? `<section class="kb-section"><h3>${title}</h3>${inner}</section>` : '';
+        book.innerHTML = `
+            <section class="kb-cover">
+                <img src="assets/lion-plush.png" alt="" width="170" />
+                <p class="kb-eyebrow">In loving memory of</p>
+                <h2>Wesley Robert Prisuta</h2>
+                <p class="kb-dates">April 20, 2025 &middot; April 25, 2026</p>
+                <p class="kb-label">${escapeHTML(label)}</p>
+            </section>
+            ${section('Photos', photos.length ? `<div class="kb-photos">${photos.map((n) =>
+                `<img src="${thumbPhotoURL(n, 600)}" data-local="${localPhotoURL(n)}" alt="Wesley" loading="eager" />`).join('')}</div>` : '')}
+            ${section('Memories', mem.map((m) => `<blockquote class="kb-quote"><p>${escapeHTML(m.memory || '').replace(/\n/g, '<br />')}</p><cite>${escapeHTML(m.name || '')}${m.date ? `, ${fmtLongDate(m.date)}` : ''}</cite></blockquote>`).join(''))}
+            ${section('Wesley in the Wild', wl.length ? `<div class="kb-wild">${wl.map((w) =>
+                `<figure><img src="${thumbPhotoURL(w.file, 600, SUNSET_PATH)}" data-local="${localPhotoURL(w.file, SUNSET_PATH)}" alt="" loading="eager" /><figcaption>${escapeHTML(w.place || '')}${w.name ? ` &middot; ${escapeHTML(w.name)}` : ''}${w.date ? ` &middot; ${fmtShortDate(w.date)}` : ''}</figcaption></figure>`).join('')}</div>` : '')}
+            ${section('Lion-Hearted Acts', act.map((a) => `<blockquote class="kb-quote"><p>${escapeHTML(a.act || '')}</p><cite>${[a.name, a.place, fmtLongDate(a.date)].filter(Boolean).map(escapeHTML).join(', ')}</cite></blockquote>`).join(''))}
+            <p class="kb-end">For Wesley. Always loved, always remembered.</p>`;
+        book.querySelectorAll('img[data-local]').forEach((img) => {
+            img.addEventListener('error', () => {
+                if (img.src.indexOf(img.dataset.local) === -1) img.src = img.dataset.local;
+            }, { once: true });
+        });
+    };
+    yearSel.addEventListener('change', render);
+    render();
 }
 
 // ---------- Photo viewer (lightbox with arrows, swipe, and videos) ----------
@@ -1269,6 +1190,8 @@ async function loadSunriseItems() {
             date: m.date || (m.file.match(/^\d{4}-\d{2}-\d{2}/) || [''])[0],
             place: m.place || placeFromFileName(m.file),
             name: m.name || '',
+            lat: m.lat,
+            lon: m.lon,
         });
     });
     (await fetchSunsetList()).forEach((file) => {
@@ -1933,6 +1856,7 @@ async function loadSunsets() {
 
     // Blended sunrise
     const startMesh = setupSunriseBlend(items);
+    const startMap = setupWildMap(items);
 
     // View tabs
     const views = document.getElementById('sr-views');
@@ -1950,6 +1874,7 @@ async function loadSunsets() {
                 panel.hidden = panel.dataset.panel !== activeView;
             });
             if (activeView === 'mesh') startMesh();
+            if (activeView === 'map') startMap();
         });
     });
 
@@ -2084,13 +2009,13 @@ function setupUploadForm(formId, endpoint, successText, fields) {
 // Decorative floating hearts, bitcoin symbols, and teddy faces behind the
 // content. Built here so every page shares one definition.
 const FLOAT_ITEMS = [
-    ['heart', 6, 12, 0, 22, 22], ['btc', 22, 6, 3, 18, 26], ['lion', 38, 14, 6, 24, 24],
-    ['heart', 56, 9, 1, 20, 18], ['btc', 72, 16, 4, 22, 22], ['lion', 88, 8, 7, 26, 26],
-    ['heart', 14, 32, 2, 18, 20], ['btc', 32, 38, 5, 24, 18], ['lion', 50, 30, 8, 20, 24],
-    ['heart', 68, 36, 0, 22, 22], ['btc', 84, 32, 3, 18, 28], ['lion', 8, 52, 6, 24, 22],
-    ['heart', 28, 58, 9, 20, 26], ['btc', 46, 50, 2, 22, 20], ['lion', 64, 56, 5, 18, 22],
-    ['heart', 82, 50, 8, 24, 18], ['btc', 16, 78, 1, 22, 24], ['lion', 36, 84, 4, 18, 22],
-    ['heart', 54, 78, 7, 22, 20], ['btc', 76, 82, 0, 26, 26], ['lion', 92, 76, 3, 20, 22],
+    ['heart', 6, 12, 0, 22, 22], ['sun', 22, 6, 3, 18, 26], ['lion', 38, 14, 6, 24, 24],
+    ['heart', 56, 9, 1, 20, 18], ['sun', 72, 16, 4, 22, 22], ['lion', 88, 8, 7, 26, 26],
+    ['heart', 14, 32, 2, 18, 20], ['sun', 32, 38, 5, 24, 18], ['lion', 50, 30, 8, 20, 24],
+    ['heart', 68, 36, 0, 22, 22], ['sun', 84, 32, 3, 18, 28], ['lion', 8, 52, 6, 24, 22],
+    ['heart', 28, 58, 9, 20, 26], ['sun', 46, 50, 2, 22, 20], ['lion', 64, 56, 5, 18, 22],
+    ['heart', 82, 50, 8, 24, 18], ['sun', 16, 78, 1, 22, 24], ['lion', 36, 84, 4, 18, 22],
+    ['heart', 54, 78, 7, 22, 20], ['sun', 76, 82, 0, 26, 26], ['lion', 92, 76, 3, 20, 22],
 ];
 
 function buildFloatingBackground() {
@@ -2109,12 +2034,9 @@ function buildFloatingBackground() {
     const layer = document.createElement('div');
     layer.className = 'floating-bg';
     layer.setAttribute('aria-hidden', 'true');
-    // Bitcoin marks belong to the wallet page; everywhere else they're suns.
-    const onWallet = !!document.getElementById('wallet');
-    layer.innerHTML = FLOAT_ITEMS.map(([kind0, x, y, d, r, size]) => {
-        const kind = kind0 === 'btc' && !onWallet ? 'sun' : kind0;
+    layer.innerHTML = FLOAT_ITEMS.map(([kind, x, y, d, r, size]) => {
         const style = `--x:${x}%;--y:${y}%;--d:${d}s;--r:${r}s;--s:${size}px`;
-        const inner = kind === 'btc' ? '₿' : `<svg><use href="#ic-${kind}"/></svg>`;
+        const inner = `<svg><use href="#ic-${kind}"/></svg>`;
         return `<span class="float-item float-${kind}" style="${style}">${inner}</span>`;
     }).join('');
 
@@ -2123,15 +2045,13 @@ function buildFloatingBackground() {
 
 (async function init() {
     buildFloatingBackground();
-    setupIntroFly();
-    setAgeLine();
-    setFooterTime();
-    setupRangeButtons();
+    setupWesleyDay();
     setupLightbox();
     setupReveals();
     setupCandle();
     setupShareButton();
     setupGift();
+    loadGiftCount();
     loadSunsets();
     setupUploadForm('sunset-form', '/api/sunset',
         'Thank you. Your photo has been received and will join the others after a quick look.',
@@ -2144,13 +2064,10 @@ function buildFloatingBackground() {
     loadMemories();
     setupMemoryForm();
     loadGallery();
-    if (document.getElementById('wallet')) {
-        try {
-            await loadChartAdapter();
-        } catch (e) {
-            console.error('chart adapter failed', e);
-        }
-        loadWallet();
-        loadChart(365);
-    }
+    loadActs();
+    setupJSONForm('act-form', '/api/act', ['act', 'place', 'name'],
+        'Thank you for being lion-hearted. Your act will appear here after a quick look.');
+    setupLetterForm();
+    loadEvents();
+    setupKeepsake();
 })();

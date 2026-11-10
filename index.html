@@ -17,7 +17,7 @@
     <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:image:alt" content="A stuffed lion with the title Wesley's Website." />
     <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Wesley's Website | In Loving Memory" />
@@ -39,15 +39,17 @@
                 <a href="words.html" data-nav="words">Words</a>
                 <a href="memories.html" data-nav="memories">Memories</a>
                 <a href="wild.html" data-nav="wild">In the Wild</a>
-                <a href="wallet.html" data-nav="wallet">Wallet</a>
+                <a href="kindness.html" data-nav="kindness">Kindness</a>
+                <a href="letters.html" data-nav="letters">Letters</a>
                 <a href="little-lion.html" data-nav="little-lion">Little Lion</a>
-                <a href="letters.html" data-nav="letters" hidden>Letters</a>
+                <a href="support.html" data-nav="support">Support</a>
             </div>
         </div>
     </nav>
 
     <header class="hero">
         <div class="hero-inner">
+            <a class="day-banner" id="day-banner" href="#candle" hidden></a>
             <div class="hero-photo" id="hero-photo" hidden>
                 <img id="hero-photo-img" alt="Wesley" />
             </div>
@@ -127,6 +129,10 @@
                     <span class="candle-count-number" id="candle-count-number">0</span>
                     <span class="candle-count-noun" id="candle-count-noun">candles lit in his memory</span>
                 </p>
+                <p class="candle-today" id="candle-today" hidden></p>
+                <p class="calendar-link">
+                    <a href="assets/wesleys-days.ics" download>Add Wesley's birthday and remembrance day to your calendar</a>
+                </p>
             </div>
         </section>
 
@@ -150,15 +156,28 @@
                         <span class="explore-title">Wesley in the Wild</span>
                         <span class="explore-text">Sunrises, sunsets, and the places we feel him.</span>
                     </a>
-                    <a class="explore-card" href="wallet.html">
-                        <span class="explore-title">Wesley's Wallet</span>
-                        <span class="explore-text">A gift held for Vada, Riley, and Jimmy.</span>
+                    <a class="explore-card" href="kindness.html">
+                        <span class="explore-title">Lion-Hearted Acts</span>
+                        <span class="explore-text">Do something kind in his honor, and tell us about it.</span>
+                    </a>
+                    <a class="explore-card" href="letters.html">
+                        <span class="explore-title">Letters for Later</span>
+                        <span class="explore-text">Sealed letters for Vada, Riley, and Jimmy to open someday.</span>
                     </a>
                     <a class="explore-card" href="little-lion.html">
                         <span class="explore-title">Little Lion Family Co.</span>
                         <span class="explore-text">Meghan's village that shows up for families, in Wesley's honor.</span>
                     </a>
+                    <a class="explore-card" href="support.html">
+                        <span class="explore-title">Help for Families</span>
+                        <span class="explore-text">Places that support families through a hospital stay or a loss.</span>
+                    </a>
                 </div>
+
+                <section class="events" id="events" hidden>
+                    <h3 class="events-title">Coming up</h3>
+                    <div class="events-list" id="events-list"></div>
+                </section>
             </div>
         </section>
     </main>
@@ -179,8 +198,14 @@
                 This site is kept by Wesley's family, and will be cared for until
                 Vada, Riley, and Jimmy are grown.
             </p>
-            <p class="small">Last updated November 9, 2026</p>
-            <p class="small" id="footer-time"></p>
+            <p class="footer-links">
+                <a href="gift.html">A gift for Vada, Riley, and Jimmy</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="keepsake.html">Make a keepsake book</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="assets/wesleys-days.ics" download>Wesley's days in your calendar</a>
+            </p>
+            <p class="small">Last updated November 10, 2026</p>
         </div>
     </footer>
 

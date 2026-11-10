@@ -17,7 +17,7 @@
     <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:image:alt" content="A stuffed lion with the title Wesley's Website." />
     <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/wild.html" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Wesley in the Wild | Wesley's Website | In Loving Memory" />
@@ -39,9 +39,10 @@
                 <a href="words.html" data-nav="words">Words</a>
                 <a href="memories.html" data-nav="memories">Memories</a>
                 <a href="wild.html" data-nav="wild" aria-current="page">In the Wild</a>
-                <a href="wallet.html" data-nav="wallet">Wallet</a>
+                <a href="kindness.html" data-nav="kindness">Kindness</a>
+                <a href="letters.html" data-nav="letters">Letters</a>
                 <a href="little-lion.html" data-nav="little-lion">Little Lion</a>
-                <a href="letters.html" data-nav="letters" hidden>Letters</a>
+                <a href="support.html" data-nav="support">Support</a>
             </div>
         </div>
     </nav>
@@ -61,6 +62,7 @@
                     <button type="button" class="sr-tab is-active" data-view="collage" role="tab" aria-selected="true">Collage</button>
                     <button type="button" class="sr-tab" data-view="single" role="tab" aria-selected="false">One at a time</button>
                     <button type="button" class="sr-tab" data-view="mesh" role="tab" aria-selected="false">Blended into one</button>
+                    <button type="button" class="sr-tab" data-view="map" role="tab" aria-selected="false">Map</button>
                 </div>
 
                 <div class="sr-panel" data-panel="collage">
@@ -83,6 +85,11 @@
                         Every moment shared so far, lined up along one horizon and softly
                         blended into a single picture, oldest on the left and newest on the right.
                     </p>
+                </div>
+
+                <div class="sr-panel" data-panel="map" hidden>
+                    <div class="sr-map" id="sr-map" aria-label="Map of where moments were shared"></div>
+                    <p class="form-note" id="sr-map-note"></p>
                 </div>
 
                 <p class="sunset-empty" id="sunset-empty">The first photos will appear here soon.</p>
@@ -111,10 +118,10 @@
     </main>
 
     <nav class="next-page" aria-label="Next page">
-        <a class="next-page-link" href="wallet.html">
+        <a class="next-page-link" href="kindness.html">
             <span class="next-page-eyebrow">Next</span>
-            <span class="next-page-title">Wesley's Wallet <span class="next-page-arrow" aria-hidden="true">&rarr;</span></span>
-            <span class="next-page-text">A gift held for Vada, Riley, and Jimmy.</span>
+            <span class="next-page-title">Lion-Hearted Acts <span class="next-page-arrow" aria-hidden="true">&rarr;</span></span>
+            <span class="next-page-text">Do something kind in his honor, and tell us about it.</span>
         </a>
     </nav>
 
@@ -126,8 +133,14 @@
                 This site is kept by Wesley's family, and will be cared for until
                 Vada, Riley, and Jimmy are grown.
             </p>
-            <p class="small">Last updated November 9, 2026</p>
-            <p class="small" id="footer-time"></p>
+            <p class="footer-links">
+                <a href="gift.html">A gift for Vada, Riley, and Jimmy</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="keepsake.html">Make a keepsake book</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="assets/wesleys-days.ics" download>Wesley's days in your calendar</a>
+            </p>
+            <p class="small">Last updated November 10, 2026</p>
         </div>
     </footer>
 

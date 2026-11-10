@@ -1,0 +1,26 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Wesley's Website//Wesley's Days//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Wesley's Days
+BEGIN:VEVENT
+UID:wesley-birthday@wesleywallet
+DTSTAMP:20261110T000000Z
+DTSTART;VALUE=DATE:20260420
+DTEND;VALUE=DATE:20260421
+RRULE:FREQ=YEARLY
+SUMMARY:Wesley's birthday
+DESCRIPTION:Wesley Robert Prisuta was born April 20\, 2025. Light a candle for him: https://wesleywallet.mcgreevyandrew.workers.dev/#candle
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:wesley-remembrance@wesleywallet
+DTSTAMP:20261110T000000Z
+DTSTART;VALUE=DATE:20270425
+DTEND;VALUE=DATE:20270426
+RRULE:FREQ=YEARLY
+SUMMARY:Remembering Wesley
+DESCRIPTION:Today we remember Wesley Robert Prisuta. Light a candle for him: https://wesleywallet.mcgreevyandrew.workers.dev/#candle
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR

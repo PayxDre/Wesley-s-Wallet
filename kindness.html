@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lion-Hearted Acts | Wesley's Website | In Loving Memory</title>
+    <meta name="description" content="Do something kind in Wesley's honor, and share it here." />
+    <!-- Family memorial with children's names: shared by link, kept out of search results. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+
+    <!-- Open Graph (iMessage, Facebook, WhatsApp, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wesley's Website" />
+    <meta property="og:title" content="Lion-Hearted Acts | Wesley's Website | In Loving Memory" />
+    <meta property="og:description" content="Do something kind in Wesley's honor, and share it here." />
+    <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A stuffed lion with the title Wesley's Website." />
+    <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/kindness.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lion-Hearted Acts | Wesley's Website | In Loving Memory" />
+    <meta name="twitter:description" content="Do something kind in Wesley's honor, and share it here." />
+    <meta name="twitter:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <nav class="site-nav" aria-label="Site">
+        <div class="site-nav-inner">
+            <a class="site-nav-brand" href="index.html">Wesley's Website</a>
+            <div class="site-nav-links">
+                <a href="index.html" data-nav="home">Home</a>
+                <a href="photos.html" data-nav="photos">Photos</a>
+                <a href="words.html" data-nav="words">Words</a>
+                <a href="memories.html" data-nav="memories">Memories</a>
+                <a href="wild.html" data-nav="wild">In the Wild</a>
+                <a href="kindness.html" data-nav="kindness" aria-current="page">Kindness</a>
+                <a href="letters.html" data-nav="letters">Letters</a>
+                <a href="little-lion.html" data-nav="little-lion">Little Lion</a>
+                <a href="support.html" data-nav="support">Support</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page-main">
+        <section id="kindness" class="section kindness">
+            <div class="container narrow">
+                <h2 class="section-title">Lion-Hearted Acts</h2>
+                <p class="section-lede">
+                    Wesley had the heart of a lion. Do something kind in his honor, big or small,
+                    and tell us about it here. Every act carries a little of him into the world.
+                </p>
+                <p class="acts-count" id="acts-count" hidden></p>
+                <div class="acts-list" id="acts-list"></div>
+                <p class="acts-empty" id="acts-empty">The first lion-hearted acts will appear here soon. Yours could be one of them.</p>
+
+                <div class="acts-ideas">
+                    <h3 class="acts-ideas-title">Need an idea?</h3>
+                    <ul>
+                        <li>Pay for the coffee of the person behind you.</li>
+                        <li>Bring a meal to a family with a new baby.</li>
+                        <li>Write a thank-you note to a NICU or PICU nurse.</li>
+                        <li>Call someone you haven't talked to in a while.</li>
+                        <li>Support <a href="little-lion.html">Wesley's Lion Heart Fund</a>.</li>
+                    </ul>
+                </div>
+
+                <form class="memory-form" id="act-form">
+                    <picture class="lion-perch lion-on-card" aria-hidden="true"><source srcset="assets/lion-plush.webp" type="image/webp" /><img src="assets/lion-plush.png" alt="" width="340" height="326" loading="lazy" /></picture>
+                    <h3 class="sunset-form-title">Share your act</h3>
+                    <label>
+                        <span>What did you do?</span>
+                        <textarea name="act" required maxlength="600" rows="4"></textarea>
+                    </label>
+                    <label>
+                        <span>Where? <em>(optional)</em></span>
+                        <input type="text" name="place" maxlength="100" placeholder="e.g. West Chester, PA" />
+                    </label>
+                    <label>
+                        <span>Your name <em>(optional)</em></span>
+                        <input type="text" name="name" maxlength="80" autocomplete="name" />
+                    </label>
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Share</button>
+                    <p class="form-note">Acts are added here after a quick look.</p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <nav class="next-page" aria-label="Next page">
+        <a class="next-page-link" href="letters.html">
+            <span class="next-page-eyebrow">Next</span>
+            <span class="next-page-title">Letters for Later <span class="next-page-arrow" aria-hidden="true">&rarr;</span></span>
+            <span class="next-page-text">Sealed letters for Vada, Riley, and Jimmy to open someday.</span>
+        </a>
+    </nav>
+
+    <footer class="footer">
+        <div class="container">
+            <p>For Wesley. Always loved, always remembered.</p>
+            <button type="button" class="share-btn" id="share-btn">Share this site</button>
+            <p class="small about-site">
+                This site is kept by Wesley's family, and will be cared for until
+                Vada, Riley, and Jimmy are grown.
+            </p>
+            <p class="footer-links">
+                <a href="gift.html">A gift for Vada, Riley, and Jimmy</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="keepsake.html">Make a keepsake book</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="assets/wesleys-days.ics" download>Wesley's days in your calendar</a>
+            </p>
+            <p class="small">Last updated November 10, 2026</p>
+        </div>
+    </footer>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Photo viewer" hidden>
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close photo">&times;</button>
+        <img id="lightbox-img" alt="Wesley" />
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

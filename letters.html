@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Letters for Later | Wesley's Website | In Loving Memory</title>
-    <meta name="description" content="Sealed letters from Wesley's family, to be opened on future milestones." />
+    <meta name="description" content="Sealed letters for Vada, Riley, and Jimmy to open when they're older." />
     <!-- Family memorial with children's names: shared by link, kept out of search results. -->
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
@@ -13,15 +13,15 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Wesley's Website" />
     <meta property="og:title" content="Letters for Later | Wesley's Website | In Loving Memory" />
-    <meta property="og:description" content="Sealed letters from Wesley's family, to be opened on future milestones." />
+    <meta property="og:description" content="Sealed letters for Vada, Riley, and Jimmy to open when they're older." />
     <meta property="og:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="A stuffed lion sitting next to a Bitcoin coin, with the title Wesley's Website." />
+    <meta property="og:image:alt" content="A stuffed lion with the title Wesley's Website." />
     <meta property="og:url" content="https://wesleywallet.mcgreevyandrew.workers.dev/letters.html" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Letters for Later | Wesley's Website | In Loving Memory" />
-    <meta name="twitter:description" content="Sealed letters from Wesley's family, to be opened on future milestones." />
+    <meta name="twitter:description" content="Sealed letters for Vada, Riley, and Jimmy to open when they're older." />
     <meta name="twitter:image" content="https://wesleywallet.mcgreevyandrew.workers.dev/assets/og-image.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -39,9 +39,10 @@
                 <a href="words.html" data-nav="words">Words</a>
                 <a href="memories.html" data-nav="memories">Memories</a>
                 <a href="wild.html" data-nav="wild">In the Wild</a>
-                <a href="wallet.html" data-nav="wallet">Wallet</a>
+                <a href="kindness.html" data-nav="kindness">Kindness</a>
+                <a href="letters.html" data-nav="letters" aria-current="page">Letters</a>
                 <a href="little-lion.html" data-nav="little-lion">Little Lion</a>
-                <a href="letters.html" data-nav="letters" aria-current="page" hidden>Letters</a>
+                <a href="support.html" data-nav="support">Support</a>
             </div>
         </div>
     </nav>
@@ -50,17 +51,64 @@
         <section id="letters" class="section letters">
             <div class="container narrow">
                 <h2 class="section-title">Letters for Later</h2>
-                <p class="section-lede">Sealed letters from family, to be opened on future milestones.</p>
+                <p class="section-lede">
+                    Write a letter for Vada, Riley, or Jimmy to open when they're older: a memory
+                    of their brother, something you want them to know, a wish for who they'll become.
+                    It stays sealed until the day you choose.
+                </p>
+                <p class="letters-count" id="letters-count" hidden></p>
                 <div class="letters-list" id="letters-list"></div>
+
+                <form class="memory-form letter-form" id="letter-form">
+                    <picture class="lion-perch lion-on-card" aria-hidden="true"><source srcset="assets/lion-plush.webp" type="image/webp" /><img src="assets/lion-plush.png" alt="" width="340" height="326" loading="lazy" /></picture>
+                    <h3 class="sunset-form-title">Write a letter</h3>
+                    <label>
+                        <span>Who is it for?</span>
+                        <select name="to" required>
+                            <option value="Vada">Vada</option>
+                            <option value="Riley">Riley</option>
+                            <option value="Jimmy">Jimmy</option>
+                            <option value="Vada, Riley, and Jimmy">All three</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>When should it open?</span>
+                        <input type="date" name="openOn" required />
+                    </label>
+                    <div class="letter-quick" role="group" aria-label="Quick opening dates">
+                        <button type="button" class="sr-chip" data-years="5">In 5 years</button>
+                        <button type="button" class="sr-chip" data-years="10">In 10 years</button>
+                        <button type="button" class="sr-chip" data-years="18">In 18 years</button>
+                    </div>
+                    <label>
+                        <span>A title <em>(optional)</em></span>
+                        <input type="text" name="title" maxlength="120" placeholder="e.g. For your 18th birthday" />
+                    </label>
+                    <label>
+                        <span>Your letter</span>
+                        <textarea name="letter" required maxlength="8000" rows="10"></textarea>
+                    </label>
+                    <label>
+                        <span>From</span>
+                        <input type="text" name="from" required maxlength="80" autocomplete="name" placeholder="e.g. Aunt Erica" />
+                    </label>
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+                    <button type="submit">Seal my letter</button>
+                    <p class="form-note">
+                        Each letter is checked once to make sure it isn't spam, then sealed. Until the
+                        opening day, this page shows only who it's from, who it's for, and when it opens.
+                        On that day, the letter appears here for the family to read.
+                    </p>
+                </form>
             </div>
         </section>
     </main>
 
     <nav class="next-page" aria-label="Next page">
-        <a class="next-page-link" href="index.html">
-            <span class="next-page-eyebrow">Keep exploring</span>
-            <span class="next-page-title">Back to the beginning <span class="next-page-arrow" aria-hidden="true">&rarr;</span></span>
-            <span class="next-page-text">Wesley's story, and a candle in his memory.</span>
+        <a class="next-page-link" href="little-lion.html">
+            <span class="next-page-eyebrow">Next</span>
+            <span class="next-page-title">Little Lion Family Co. <span class="next-page-arrow" aria-hidden="true">&rarr;</span></span>
+            <span class="next-page-text">Meghan's village that shows up for families, in Wesley's honor.</span>
         </a>
     </nav>
 
@@ -72,8 +120,14 @@
                 This site is kept by Wesley's family, and will be cared for until
                 Vada, Riley, and Jimmy are grown.
             </p>
-            <p class="small">Last updated November 9, 2026</p>
-            <p class="small" id="footer-time"></p>
+            <p class="footer-links">
+                <a href="gift.html">A gift for Vada, Riley, and Jimmy</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="keepsake.html">Make a keepsake book</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="assets/wesleys-days.ics" download>Wesley's days in your calendar</a>
+            </p>
+            <p class="small">Last updated November 10, 2026</p>
         </div>
     </footer>
 
