@@ -64,14 +64,14 @@
                 <div class="photo-grid" id="photo-grid"></div>
                 <p class="gallery-empty" id="gallery-empty" hidden>Photos coming soon.</p>
 
-                <form class="memory-form upload-form" id="photo-form">
-                    <h3 class="sunset-form-title">Share a photo or video of Wesley</h3>
-                    <p class="upload-lede">Have a moment of Wesley we haven't seen? It will join the others here.</p>
+                <form class="memory-form upload-form" id="photo-form" data-again="Share more">
+                    <h3 class="sunset-form-title">Share photos or videos of Wesley</h3>
+                    <p class="upload-lede">Have moments of Wesley we haven't seen? Pick as many as you like, up to 20 at a time.</p>
                     <label class="sunset-pick">
-                        <input type="file" name="photo" accept="image/*,video/*" required />
+                        <input type="file" name="photo" accept="image/*,video/*" multiple required />
                         <img class="sunset-preview upload-preview-img" alt="" hidden />
                         <video class="sunset-preview upload-preview-video" muted playsinline loop hidden></video>
-                        <span class="sunset-pick-text upload-pick-text">Choose a photo or video</span>
+                        <span class="sunset-pick-text upload-pick-text">Choose photos or videos</span>
                     </label>
                     <label>
                         <span>About this photo <em>(optional)</em></span>

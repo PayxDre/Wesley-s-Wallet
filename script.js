@@ -149,7 +149,8 @@ async function loadGallery() {
         });
     } catch { /* captions are optional */ }
 
-    await addPhotoSignatures(items);
+    // Never hold the wall up for long waiting on fingerprints.
+    await Promise.race([addPhotoSignatures(items), new Promise((r) => setTimeout(r, 3000))]);
     items.forEach((it) => { it.figure = makePhotoTile(it); });
 
     let columns = 0;
@@ -296,6 +297,20 @@ function placeGallery(grid, items, n) {
 
 let galleryOrder = [];
 
+let videoTileObserver = null;
+function watchVideoTile(video) {
+    if (!('IntersectionObserver' in window)) { video.autoplay = true; return; }
+    if (!videoTileObserver) {
+        videoTileObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) entry.target.play().catch(() => {});
+                else entry.target.pause();
+            });
+        }, { rootMargin: '200px 0px' });
+    }
+    videoTileObserver.observe(video);
+}
+
 function makePhotoTile(it) {
     const figure = document.createElement('figure');
     figure.tabIndex = 0;
@@ -304,15 +319,17 @@ function makePhotoTile(it) {
     if (it.video) {
         element = document.createElement('video');
         element.src = localPhotoURL(it.name);
-        element.autoplay = true;
         element.loop = true;
         element.muted = true;
         element.defaultMuted = true;
         element.playsInline = true;
         element.setAttribute('muted', '');
         element.setAttribute('playsinline', '');
-        element.preload = 'metadata';
+        // Videos load and play only while they're on screen, so a wall with
+        // many of them stays light.
+        element.preload = it.poster ? 'none' : 'metadata';
         if (it.poster) element.poster = localPhotoURL(it.poster);
+        watchVideoTile(element);
         element.addEventListener('error', () => figure.classList.add('is-missing'));
         figure.setAttribute('aria-label', 'Play this video of Wesley');
     } else {
@@ -612,7 +629,7 @@ function setupCandle() {
     if (noteForm) {
         noteForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            await submitToSite(noteForm, '/api/candle', {
+            const sent = await submitToSite(noteForm, '/api/candle', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -621,8 +638,10 @@ function setupCandle() {
                     website: noteForm.elements.website.value,
                 }),
             }, 'Thank you. Your words will appear here after a quick look.');
-            if (!document.body.contains(noteForm)) {
+            if (sent) {
                 try { localStorage.setItem(noteKey, '1'); } catch { /* private mode */ }
+                const again = noteForm.parentElement.querySelector('.form-success .form-again');
+                if (again) again.remove();
             }
         });
     }
@@ -723,13 +742,10 @@ async function submitToSite(form, url, options, successText) {
         const res = await fetch(url, options);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Sorry, that could not be sent. Please try again in a moment.');
-        const done = document.createElement('p');
-        done.className = 'form-success';
-        done.textContent = successText;
-        form.replaceWith(done);
-        // The message is much shorter than the form it replaces, so bring
-        // it into view; otherwise it can end up off-screen or under the menu.
-        done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        button.disabled = false;
+        button.textContent = originalText;
+        showSubmitSuccess(form, successText);
+        return true;
     } catch (err) {
         button.disabled = false;
         button.textContent = originalText;
@@ -743,7 +759,34 @@ async function submitToSite(form, url, options, successText) {
                 note.classList.remove('form-error');
             }, 8000);
         }
+        return false;
     }
+}
+
+// Swap the form for a thank-you, with a way to bring it back and share
+// something else without reloading the page.
+function showSubmitSuccess(form, successText) {
+    const done = document.createElement('div');
+    done.className = 'form-success';
+    const msg = document.createElement('p');
+    msg.textContent = successText;
+    const again = document.createElement('button');
+    again.type = 'button';
+    again.className = 'form-again';
+    again.textContent = form.dataset.again || 'Share another';
+    again.addEventListener('click', () => {
+        form.reset();
+        form.dispatchEvent(new Event('form-restored'));
+        form.hidden = false;
+        done.remove();
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    done.append(msg, again);
+    form.hidden = true;
+    form.after(done);
+    // The message is much shorter than the form it replaces, so bring
+    // it into view; otherwise it can end up off-screen or under the menu.
+    done.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ---------- Small shared helpers ----------
@@ -1501,6 +1544,8 @@ const MAX_VIDEO_BYTES = 24 * 1024 * 1024;
 
 // Shared by the sunset form and the photos-of-Wesley form. Images are
 // shrunk in the browser (see shrinkPhoto); videos are sent as they are.
+const MAX_FILES_AT_ONCE = 20;
+
 function setupUploadForm(formId, endpoint, successText, fields) {
     const form = document.getElementById(formId);
     if (!form) return;
@@ -1509,10 +1554,27 @@ function setupUploadForm(formId, endpoint, successText, fields) {
     const video = form.querySelector('.upload-preview-video');
     const pickText = form.querySelector('.upload-pick-text');
     const note = form.querySelector('.form-note');
+    const button = form.querySelector('button[type="submit"]');
     const originalNote = note ? note.textContent : '';
+    const originalPick = pickText ? pickText.textContent : '';
+    const caption = form.elements.caption;
+    const showError = (text) => {
+        if (!note) return;
+        note.textContent = text;
+        note.classList.add('form-error');
+    };
+    const clearPreview = () => {
+        if (img) { img.hidden = true; img.removeAttribute('src'); }
+        if (video) { video.hidden = true; video.pause(); video.removeAttribute('src'); }
+        if (pickText) pickText.textContent = originalPick;
+        if (caption) caption.disabled = false;
+        if (note) { note.textContent = originalNote; note.classList.remove('form-error'); }
+    };
+    form.addEventListener('form-restored', clearPreview);
 
     input.addEventListener('change', () => {
-        const file = input.files && input.files[0];
+        const files = [...(input.files || [])];
+        const file = files[0];
         if (!file) return;
         const url = URL.createObjectURL(file);
         const isVideo = file.type.startsWith('video/');
@@ -1527,28 +1589,63 @@ function setupUploadForm(formId, endpoint, successText, fields) {
             img.hidden = false;
             img.onerror = () => { img.hidden = true; };
         }
-        if (pickText) pickText.textContent = isVideo ? 'Change video' : 'Change photo';
+        if (pickText) {
+            pickText.textContent = files.length > 1 ? `${files.length} selected (tap to change)`
+                : (isVideo ? 'Change video' : 'Change photo');
+        }
+        // One caption can't describe several photos.
+        if (caption) caption.disabled = files.length > 1;
         if (note) { note.textContent = originalNote; note.classList.remove('form-error'); }
     });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const file = input.files && input.files[0];
-        if (!file) return;
-        const isVideo = file.type.startsWith('video/');
-        if (isVideo && file.size > MAX_VIDEO_BYTES) {
-            if (note) {
-                note.textContent = 'That video is too large. Please choose one under 24 MB (about 20 seconds).';
-                note.classList.add('form-error');
-            }
+        const files = [...(input.files || [])];
+        if (!files.length) return;
+        if (files.length > MAX_FILES_AT_ONCE) {
+            showError(`Please share up to ${MAX_FILES_AT_ONCE} at a time.`);
             return;
         }
-        const data = new FormData();
-        const upload = isVideo ? file : await shrinkPhoto(file);
-        data.append('photo', upload, upload === file ? file.name : 'photo.jpg');
-        for (const field of fields) data.append(field, form.elements[field].value);
-        data.append('website', form.elements.website.value);
-        await submitToSite(form, endpoint, { method: 'POST', body: data }, successText);
+        const tooBig = files.find((f) => f.type.startsWith('video/') && f.size > MAX_VIDEO_BYTES);
+        if (tooBig) {
+            showError(files.length > 1
+                ? `"${tooBig.name}" is too large. Videos need to be under 24 MB (about 20 seconds).`
+                : 'That video is too large. Please choose one under 24 MB (about 20 seconds).');
+            return;
+        }
+        const originalText = button.textContent;
+        button.disabled = true;
+        let sent = 0;
+        try {
+            for (const file of files) {
+                button.textContent = files.length > 1 ? `Sending ${sent + 1} of ${files.length}…` : 'Sending…';
+                const isVideo = file.type.startsWith('video/');
+                const data = new FormData();
+                const upload = isVideo ? file : await shrinkPhoto(file);
+                data.append('photo', upload, upload === file ? file.name : 'photo.jpg');
+                for (const field of fields) {
+                    const el = form.elements[field];
+                    data.append(field, el && !el.disabled ? el.value : '');
+                }
+                data.append('website', form.elements.website.value);
+                const res = await fetch(endpoint, { method: 'POST', body: data });
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(body.error || 'Sorry, that could not be sent. Please try again in a moment.');
+                sent += 1;
+            }
+            button.disabled = false;
+            button.textContent = originalText;
+            showSubmitSuccess(form, files.length > 1
+                ? `Thank you. All ${files.length} have been received and will be added after a quick look.`
+                : successText);
+        } catch (err) {
+            button.disabled = false;
+            button.textContent = originalText;
+            const reason = err.message && !/fetch|network/i.test(err.message)
+                ? err.message
+                : 'Sorry, that could not be sent. Please check your connection and try again.';
+            showError(sent ? `${sent} of ${files.length} were received, then: ${reason}` : reason);
+        }
     });
 }
 

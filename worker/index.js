@@ -29,7 +29,9 @@ const MAX_PLACE = 100;
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 // Cloudflare KV values max out at 25 MiB; leave headroom.
 const MAX_VIDEO_BYTES = 24 * 1024 * 1024;
-const SUBMISSIONS_PER_IP_PER_HOUR = 10;
+// Per network, per hour. Generous enough for a family sharing one Wi-Fi to
+// each send a batch of photos, still low enough to stop a flood.
+const SUBMISSIONS_PER_IP_PER_HOUR = 60;
 const MAX_ACT = 600;
 const MAX_CANDLE = 140;
 const MAX_CAPTION = 160;
