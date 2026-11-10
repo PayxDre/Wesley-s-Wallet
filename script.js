@@ -64,11 +64,17 @@ async function loadHeroPhoto() {
 
 // On pages without photos of him, Wesley's main photo rests softly at the
 // side of the screen while people read, faded so it never competes with
-// the words. Pages opt in with <body data-companion>.
+// the words. Pages opt in with <body data-companion>, or name a photo from
+// assets/photos to use instead of the main one: data-companion="IMG_0011.jpeg".
+// Where his face sits in each photo, so the soft fade stays centered on him.
+const COMPANION_FOCUS = { 'IMG_0011.jpeg': '53% 38%' };
+
 async function addCompanionPhoto() {
     if (!document.body.hasAttribute('data-companion')) return;
     const names = await getPhotoNames();
-    const mainName = names.find((n) => MAIN_RX.test(n) && IMAGE_RX.test(n));
+    const wanted = document.body.getAttribute('data-companion');
+    const mainName = (wanted && names.includes(wanted) ? wanted : null)
+        || names.find((n) => MAIN_RX.test(n) && IMAGE_RX.test(n));
     if (!mainName) return;
     const wrap = document.createElement('div');
     wrap.className = 'companion';
@@ -81,6 +87,7 @@ async function addCompanionPhoto() {
     img.addEventListener('error', () => {
         if (!triedLocal) { triedLocal = true; img.src = localPhotoURL(mainName); } else { wrap.remove(); }
     });
+    if (COMPANION_FOCUS[mainName]) img.style.objectPosition = COMPANION_FOCUS[mainName];
     img.src = thumbPhotoURL(mainName, 900);
     wrap.appendChild(img);
     document.body.prepend(wrap);
