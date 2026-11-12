@@ -54,5 +54,13 @@
     "name": "Nat, Naya, Meg, & Matt",
     "lat": 39.1012,
     "lon": -74.7177
+  },
+  {
+    "file": "2026-07-01-outer-banks.jpg",
+    "date": "2026-07-01",
+    "place": "Outer Banks, NC",
+    "name": "Andrew McGreevy",
+    "lat": 35.96,
+    "lon": -75.62
   }
 ]
