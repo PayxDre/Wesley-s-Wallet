@@ -70,5 +70,13 @@
     "name": "Luke McGreevy",
     "lat": 39.9607,
     "lon": -75.6055
+  },
+  {
+    "file": "2026-11-12-ocean-city.jpg",
+    "date": "2026-11-12",
+    "place": "Ocean City, NJ",
+    "name": "Trish McGreevy",
+    "lat": 39.2776,
+    "lon": -74.5746
   }
 ]
