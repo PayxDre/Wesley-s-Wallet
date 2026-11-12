@@ -62,5 +62,13 @@
     "name": "Andrew McGreevy",
     "lat": 35.96,
     "lon": -75.62
+  },
+  {
+    "file": "2026-11-12-west-chester.jpg",
+    "date": "2026-11-12",
+    "place": "West Chester, PA",
+    "name": "Luke McGreevy",
+    "lat": 39.9607,
+    "lon": -75.6055
   }
 ]
