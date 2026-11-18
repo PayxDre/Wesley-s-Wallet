@@ -102,5 +102,13 @@
     "name": "Erica McGreevy",
     "lat": 40.3337,
     "lon": -75.6374
+  },
+  {
+    "file": "2026-11-18-princeton.jpg",
+    "date": "2026-11-18",
+    "place": "Princeton, NJ",
+    "name": "Allison Gelsomino",
+    "lat": 40.3573,
+    "lon": -74.6672
   }
 ]
