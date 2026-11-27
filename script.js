@@ -886,7 +886,10 @@ async function loadWhatsNew() {
     const add = (href, text) => items.push(`<a href="${href}">${escapeHTML(text)}</a>`);
     if (memories.length === 1) add('memories.html', memories[0].name ? `A new memory from ${memories[0].name}` : 'A new memory');
     else if (memories.length) add('memories.html', `${memories.length} new memories`);
-    if (wild.length === 1) add('wild.html', wild[0].place ? `A new moment from ${wild[0].place}` : 'A new moment in the wild');
+    if (wild.length === 1) {
+        const w = wild[0];
+        add('wild.html', w.title ? `A new moment: ${w.title}` : (w.place ? `A new moment from ${w.place}` : 'A new moment in the wild'));
+    }
     else if (wild.length) add('wild.html', `${wild.length} new moments in the wild`);
     if (acts.length) add('kindness.html', acts.length === 1 ? 'A new lion-hearted act' : `${acts.length} new lion-hearted acts`);
     if (candles.length) add('#candle', candles.length === 1 ? 'New words left with a candle' : `${candles.length} new candle messages`);
@@ -973,10 +976,10 @@ function setupWildMap(items) {
             const pop = document.createElement('div');
             pop.className = 'sr-map-pop';
             const img = document.createElement('img');
-            img.alt = it.place || 'A moment shared for Wesley';
+            img.alt = it.title || it.place || 'A moment shared for Wesley';
             setImageWithFallback(img, it.file, 320, null, SUNSET_PATH);
             const cap = document.createElement('p');
-            cap.innerHTML = `<strong>${escapeHTML(it.place || 'Wesley in the wild')}</strong><br />${[it.name, fmtShortDate(it.date)].filter(Boolean).map(escapeHTML).join(' &middot; ')}`;
+            cap.innerHTML = `<strong>${escapeHTML(it.title || it.place || 'Wesley in the wild')}</strong><br />${[it.title ? it.place : '', it.name, fmtShortDate(it.date)].filter(Boolean).map(escapeHTML).join(' &middot; ')}`;
             pop.append(img, cap);
             L.circleMarker(ll, { radius: 9, color: '#fffaf2', weight: 2, fillColor: '#d9932f', fillOpacity: 0.95 })
                 .addTo(map).bindPopup(pop, { maxWidth: 240 });
@@ -1033,7 +1036,7 @@ async function setupKeepsake() {
                 `<img src="${thumbPhotoURL(n, 600)}" data-local="${localPhotoURL(n)}" alt="Wesley" loading="eager" />`).join('')}</div>` : '')}
             ${section('Memories', mem.map((m) => `<blockquote class="kb-quote"><p>${escapeHTML(m.memory || '').replace(/\n/g, '<br />')}</p><cite>${escapeHTML(m.name || '')}${m.date ? `, ${fmtLongDate(m.date)}` : ''}</cite></blockquote>`).join(''))}
             ${section('Wesley in the Wild', wl.length ? `<div class="kb-wild">${wl.map((w) =>
-                `<figure><img src="${thumbPhotoURL(w.file, 600, SUNSET_PATH)}" data-local="${localPhotoURL(w.file, SUNSET_PATH)}" alt="" loading="eager" /><figcaption>${escapeHTML(w.place || '')}${w.name ? ` &middot; ${escapeHTML(w.name)}` : ''}${w.date ? ` &middot; ${fmtShortDate(w.date)}` : ''}</figcaption></figure>`).join('')}</div>` : '')}
+                `<figure><img src="${thumbPhotoURL(w.file, 600, SUNSET_PATH)}" data-local="${localPhotoURL(w.file, SUNSET_PATH)}" alt="" loading="eager" /><figcaption>${escapeHTML(w.title || w.place || '')}${w.name ? ` &middot; ${escapeHTML(w.name)}` : ''}${w.date ? ` &middot; ${fmtShortDate(w.date)}` : ''}</figcaption></figure>`).join('')}</div>` : '')}
             ${section('Lion-Hearted Acts', act.map((a) => `<blockquote class="kb-quote"><p>${escapeHTML(a.act || '')}</p><cite>${[a.name, a.place, fmtLongDate(a.date)].filter(Boolean).map(escapeHTML).join(', ')}</cite></blockquote>`).join(''))}
             <p class="kb-end">For Wesley. Always loved, always remembered.</p>`;
         book.querySelectorAll('img[data-local]').forEach((img) => {
@@ -1273,6 +1276,7 @@ async function loadSunriseItems() {
         byFile.set(m.file, {
             file: m.file,
             date: m.date || (m.file.match(/^\d{4}-\d{2}-\d{2}/) || [''])[0],
+            title: typeof m.title === 'string' ? m.title.trim() : '',
             place: m.place || placeFromFileName(m.file),
             name: m.name || '',
             lat: m.lat,
@@ -1336,8 +1340,8 @@ function createSunriseViewer(root, items) {
         const item = items[index];
         img.dataset.fallback = '';
         img.src = sunriseThumb(item, 1600);
-        img.alt = item.place ? `A moment shared from ${item.place}` : 'A moment shared for Wesley';
-        placeEl.textContent = item.place || 'Wesley in the wild';
+        img.alt = item.title || (item.place ? `A moment shared from ${item.place}` : 'A moment shared for Wesley');
+        placeEl.textContent = item.title || item.place || 'Wesley in the wild';
         metaEl.textContent = [item.name && `Shared by ${item.name}`, fmtShortDate(item.date)]
             .filter(Boolean).join(' · ');
         countEl.textContent = items.length > 1 ? `${index + 1} of ${items.length}` : '';
@@ -1395,14 +1399,14 @@ async function loadSunsets() {
         const figure = document.createElement('figure');
         figure.className = 'sunset';
         const img = document.createElement('img');
-        img.alt = item.place ? `A moment shared from ${item.place}` : 'A moment shared for Wesley';
+        img.alt = item.title || (item.place ? `A moment shared from ${item.place}` : 'A moment shared for Wesley');
         img.loading = 'lazy';
         setImageWithFallback(img, item.file, 600, figure, SUNSET_PATH);
         const cap = document.createElement('figcaption');
         cap.className = 'sunset-cap';
         const place = document.createElement('span');
         place.className = 'cap-place';
-        place.textContent = item.place || 'Wesley in the wild';
+        place.textContent = item.title || item.place || 'Wesley in the wild';
         const meta = document.createElement('span');
         meta.className = 'cap-meta';
         meta.textContent = [item.name, fmtShortDate(item.date)].filter(Boolean).join(' · ');
