@@ -111,5 +111,18 @@
     "lat": 40.3573,
     "lon": -74.6672
   },
-  {"file": "2026-11-23-gilbertsville.jpg", "date": "2026-11-23", "place": "Gilbertsville, PA", "name": "Andrew", "lat": 40.3232, "lon": -75.6081}
+  {
+    "file": "2026-11-23-gilbertsville.jpg",
+    "date": "2026-11-23",
+    "place": "Gilbertsville, PA",
+    "name": "Andrew",
+    "lat": 40.3232,
+    "lon": -75.6081
+  },
+  {
+    "file": "2026-11-26-sunset.jpg",
+    "date": "2026-11-26",
+    "place": "",
+    "name": "Uncle Andrew"
+  }
 ]
